@@ -266,7 +266,8 @@ Run 'pip install torchvision==0.24' to fix torchvision or 'pip install -U torch 
 For a full compatibility table see https://github.com/pytorch/vision#installation 
 
 **Одно из возможных решений:** 
-```conda uninstall pytorch torchvision -y
+```
+conda uninstall pytorch torchvision -y
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 pip install ultralytics-thop opencv-python
 ```
