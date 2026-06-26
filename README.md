@@ -150,6 +150,15 @@ Remove-Item "$env:LOCALAPPDATA\ESRI\ArcGISPro\AssemblyCache\{a79ff6b9-f9a2-4dc3-
 ## 🧩 Добавление в ArcGIS Pro
 Скачайте архив на странице релиза [ArcGisProAppYolo.1.0.0-windows.rar](https://github.com/gdenis82/ArcGisPro_Yolo_Tools/releases)
 
+```text
+Распакуйте архив ArcGisProAppYolo.1.0.0-windows.rar
+Дважды кликните по файлу ArcGisProAppYolo.esriAddinX (находится в папке ArcGisProAppYolo.1.0.0-windows)
+Нажмите Install Add-In в окне установщика
+Перезапустите ArcGIS Pro
+Инструмент появится на ленте в соответствующей вкладке
+Разместите папку opp_yolo_tool в расположении ArcGISPro: C:\Users\<USERNAME>\AppData\Local\ESRI\ArcGISPro\opp_yolo_tool
+```
+
 ### Способ 1: Самый простой (двойной клик)
 1. Закройте ArcGIS Pro (если он открыт).
 2. Перейдите в папку плагина.
@@ -162,6 +171,7 @@ Remove-Item "$env:LOCALAPPDATA\ESRI\ArcGISPro\AssemblyCache\{a79ff6b9-f9a2-4dc3-
 3. В меню выберите Options (Параметры).
 4. Добавьте путь размещения папки с файлом .esriAddinX.
 5. Установите "Load all Add-Ins without restrictions (Least Secure)"
+
 
 ## 📋 Использование
 
