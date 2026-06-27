@@ -8,7 +8,6 @@ SAHI-only предсказание для ортофото с записью р�
 2) Сохранение единого JSON с предсказаниями
 3) Формирование Detected_Points.shp / Detected_BBoxes.shp / Detected_Masks.shp
 
-Merged-слои не создаются.
 """
 
 import argparse
@@ -35,6 +34,12 @@ except Exception:
     arcpy = None
 
 DEBUG = is_debug_enabled("OPP_YOLO_DEBUG_PREDICT_MODULE")
+ULTRALYTICS_MODEL_NAMES = ["yolov8", "yolov11", "yolo11", "yolo26", "ultralytics"]
+
+import torch
+DEVICE = "cpu"
+if torch.cuda.is_available():
+    DEVICE = "cuda:0" if torch.cuda.is_available() else "cpu"
 
 
 def _pixel_to_map(extent, px, py, cell_w, cell_h):
@@ -541,25 +546,35 @@ def run_predictions(tiles_dir, model_path, confidence, outputs, tile_size=640, n
         raise RuntimeError(f"SAHI is required but not available: {e}")
 
     detection_model = None
-    for model_type in ("ultralytics", "yolov8"):
-        try:
-            detection_model = AutoDetectionModel.from_pretrained(
-                model_type=model_type,
-                model_path=model_path,
-                confidence_threshold=float(confidence),
-                device="cuda:0",
-            )
-            break
-        except Exception:
-            detection_model = None
+
+    try:
+        from ultralytics import YOLO
+        _model = YOLO(model=model_path)
+
+        if 'train_args' in _model.ckpt:
+            if 'model' in _model.ckpt['train_args']:
+
+                temp_model_type = _model.ckpt['train_args']['model']
+                for model_type in ULTRALYTICS_MODEL_NAMES:
+
+                    if model_type in temp_model_type:
+                        print(f"INFO: Ultralytics model loaded from checkpoint: {model_type}, {model_path}")
+
+                        detection_model = AutoDetectionModel.from_pretrained(
+                                    model_type=model_type,
+                                    model_path=model_path,
+                                    confidence_threshold=float(confidence),
+                                    device=DEVICE,
+                                )
+                        break
+
+    except Exception as ex:
+        detection_model = None
+        LOG.warning("WARN: Ultralytics model failed to load: %s", ex)
 
     if detection_model is None:
-        detection_model = AutoDetectionModel.from_pretrained(
-            model_type="yolov8",
-            model_path=model_path,
-            confidence_threshold=float(confidence),
-            device="cpu",
-        )
+        raise RuntimeError("Ultralytics model failed to load")
+
 
     result = get_sliced_prediction(
         image=str(ortho_path),
@@ -611,15 +626,17 @@ def parse_args(argv):
 def manual_args():
     argv_full = [
         "--tiles-dir",
-        r"C:\Users\omen_\OneDrive\Documents\ArcGIS\Projects\MyProject2\OrthoMapping\opp2.eomw\Tiles",
+        r"C:\\Users\\omen_\\OneDrive\\Documents\\ArcGIS\Projects\\MyProject2\\OrthoMapping\\opp2.eomw\\Tiles\\256px",
         "--model",
-        r"U:\PV-SEG\best_pv-seg-yv11x_dsv1\weights\best_pv-seg-yv11x_dsv1.pt",
+        r"U:\\PV-SEG\\best_pv-seg-yv11x_dsv1\\weights\\best_pv-seg-yv11x_dsv1.pt",
         "--confidence",
         "0.5",
         "--tile-size",
-        "640",
+        "256",
         "--outputs",
         "point,bbox,mask",
+        "--mask-mode",
+        "largest",
     ]
     return parse_args(argv_full)
 

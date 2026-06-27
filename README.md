@@ -11,7 +11,7 @@
 
 ## 📖 Описание проекта
 
-**ArcGisProAppYolo** — это надстройка (Add-in) для **ArcGIS Pro 3.7**, которая интегрирует **YOLO (You Only Look Once)** object detection непосредственно в рабочую среду ArcGIS Pro. 
+**ArcGisProAppYolo** — это надстройка (Add-in) для **ArcGIS Pro 3.7**, которая интегрирует **Ultralytics YOLO (You Only Look Once)** object detection непосредственно в рабочую среду ArcGIS Pro. 
 
 Проект предоставляет удобный UI для:
 - ✂️ **Нарезки ортофотопланов на тайлы** с настраиваемым размером и overlap
