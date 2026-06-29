@@ -727,7 +727,7 @@ def manual_args():
 
 
 def main(argv=None):
-    if True:
+    if DEBUG:
         args = manual_args()
     else:
         args = parse_args(argv or sys.argv[1:])
