@@ -1147,6 +1147,11 @@ namespace ArcGisProAppYolo.DockPanes
                     args += " --apply-to-val";
                 if (ApplyToTest)
                     args += " --apply-to-test";
+                if (DebugMode)
+                {
+                    var debugDir = Path.Combine(experimentFolder, "debug");
+                    args += $" --debug --debug-dir \"{debugDir}\"";
+                }
 
                 AppendProgressLine("INFO: Running augmentation pipeline...");
                 Tools.Logger.Log($"INFO: Starting augmentation_module.py: {scriptPath} {args}");
@@ -1300,7 +1305,13 @@ namespace ArcGisProAppYolo.DockPanes
             var stderr = new StringBuilder();
             var layersArg = string.Join("|", layerNames);
             var projectUri = Project.Current?.URI ?? string.Empty;
-            var args = $"--tiles-folder \"{tilesFolder}\" --dataset-root \"{experimentFolder}\" --train {TrainPercent} --val {ValPercent} --test {TestPercent} --seed {Seed} --layers \"{layersArg}\" --aprx \"{projectUri}\"";
+            var args = $"--tiles-folder \"{tilesFolder}\" --dataset-root \"{experimentFolder}\" --train {TrainPercent} --val {ValPercent} --test {TestPercent} --seed {Seed} --layers \"{layersArg}\" --dataset-type \"{SelectedDatasetType}\" --aprx \"{projectUri}\"";
+            if (DebugMode)
+            {
+                var debugDir = Path.Combine(experimentFolder, "debug");
+                args += $" --debug --debug-dir \"{debugDir}\"";
+                AppendProgressLine($"INFO: Debug annotation mode enabled. Output: {debugDir}");
+            }
 
             var exit = await Tools.PythonRunner.RunPythonScriptAsync(
                 null,

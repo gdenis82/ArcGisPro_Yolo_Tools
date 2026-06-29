@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import random
 from dataclasses import dataclass
@@ -42,6 +43,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--apply-to-val", action="store_true")
     parser.add_argument("--apply-to-test", action="store_true")
     parser.add_argument("--max-per-image", type=int, default=2)
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--debug-dir", required=False)
     return parser.parse_args(argv)
 
 
@@ -446,16 +449,30 @@ def _transform_objects(objs: list[YoloObject], h: np.ndarray) -> list[YoloObject
 def _deterministic_variants(config: dict) -> list[tuple[str, np.ndarray]]:
     geo = config.get("geometry", {})
     variants: list[tuple[str, np.ndarray]] = []
-    if _to_bool(geo.get("rotate_90_cw", False), False):
+    use_rot90 = _to_bool(geo.get("rotate_90_cw", False), False)
+    use_rot180 = _to_bool(geo.get("rotate_180", False), False)
+    use_rot270 = _to_bool(geo.get("rotate_270_cw", False), False)
+    use_fliph = _to_bool(geo.get("flip_horizontal", False), False)
+    use_flipv = _to_bool(geo.get("flip_vertical", False), False)
+
+    if use_rot90:
         variants.append(("rot90", _rot90_h()))
-    if _to_bool(geo.get("rotate_180", False), False):
+    if use_rot180:
         variants.append(("rot180", _rot180_h()))
-    if _to_bool(geo.get("rotate_270_cw", False), False):
+    if use_rot270:
         variants.append(("rot270", _rot270_h()))
-    if _to_bool(geo.get("flip_horizontal", False), False):
+    if use_fliph:
         variants.append(("fliph", _hflip_h()))
-    if _to_bool(geo.get("flip_vertical", False), False):
+    if use_flipv:
         variants.append(("flipv", _vflip_h()))
+
+    # Дополнительные детерминированные комбинации:
+    # FlipH + Rotate90 и FlipH + Rotate270
+    if use_fliph and use_rot90:
+        variants.append(("fliph_rot90", _rot90_h() @ _hflip_h()))
+    if use_fliph and use_rot270:
+        variants.append(("fliph_rot270", _rot270_h() @ _hflip_h()))
+
     return variants
 
 
@@ -508,6 +525,66 @@ def _save_variant(split_dir: Path, stem: str, tag: str, img: np.ndarray, objs: l
     lbl_path = split_dir / "labels" / f"{stem}__{tag}.txt"
     cv2.imwrite(str(img_path), img)
     _write_label_file(lbl_path, objs)
+
+
+def _draw_debug_annotations(img: np.ndarray, objs: list[YoloObject]) -> np.ndarray:
+    out = img.copy()
+    h, w = out.shape[:2]
+    if h <= 0 or w <= 0:
+        return out
+
+    for obj in objs:
+        pts = obj.points
+        if not pts:
+            continue
+
+        xs = [p[0] for p in pts if math.isfinite(p[0])]
+        ys = [p[1] for p in pts if math.isfinite(p[1])]
+        if not xs or not ys:
+            continue
+
+        x1n, x2n = min(xs), max(xs)
+        y1n, y2n = min(ys), max(ys)
+        if not (math.isfinite(x1n) and math.isfinite(x2n) and math.isfinite(y1n) and math.isfinite(y2n)):
+            continue
+
+        pix = []
+        for px, py in pts:
+            if not (math.isfinite(px) and math.isfinite(py)):
+                continue
+            ix = int(max(0, min(w - 1, round(px * w))))
+            iy = int(max(0, min(h - 1, round(py * h))))
+            pix.append((ix, iy))
+
+        if obj.source_kind == "bbox":
+            x1 = int(max(0, min(w - 1, round(x1n * w))))
+            y1 = int(max(0, min(h - 1, round(y1n * h))))
+            x2 = int(max(0, min(w - 1, round(x2n * w))))
+            y2 = int(max(0, min(h - 1, round(y2n * h))))
+            if x2 <= x1 or y2 <= y1:
+                continue
+            cv2.rectangle(out, (x1, y1), (x2, y2), (0, 220, 0), 1)
+            anchor_x, anchor_y = x1, y1
+        else:
+            if len(pix) < 3:
+                continue
+            poly = np.array(pix, dtype=np.int32).reshape((-1, 1, 2))
+            cv2.polylines(out, [poly], isClosed=True, color=(0, 220, 0), thickness=1)
+            anchor_x, anchor_y = pix[0]
+
+        label = f"class: {obj.cls_id}"
+        text_y = anchor_y - 4 if anchor_y > 10 else min(h - 2, anchor_y + 10)
+        cv2.putText(out, label, (anchor_x + 1, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 220, 0), 1, cv2.LINE_AA)
+
+    return out
+
+
+def _save_debug_variant(debug_dir: Path, split_name: str, stem: str, tag: str, img: np.ndarray, objs: list[YoloObject]) -> None:
+    debug_split_dir = debug_dir / split_name
+    debug_split_dir.mkdir(parents=True, exist_ok=True)
+    debug_img = _draw_debug_annotations(img, objs)
+    debug_img_path = debug_split_dir / f"{stem}__{tag}.jpg"
+    cv2.imwrite(str(debug_img_path), debug_img)
 
 
 def _load_item(image_path: Path, label_path: Path) -> tuple[np.ndarray | None, list[YoloObject]]:
@@ -654,7 +731,14 @@ def _apply_copy_paste(image: np.ndarray, objs: list[YoloObject], items: list[tup
     return target, out_objs
 
 
-def _process_split(split_dir: Path, config: dict, rng: random.Random, max_per_image: int) -> dict:
+def _process_split(
+    split_dir: Path,
+    config: dict,
+    rng: random.Random,
+    max_per_image: int,
+    debug_enabled: bool,
+    debug_dir: Path,
+) -> dict:
     stats = {"split": split_dir.name, "images": 0, "created": 0}
     items = _collect_split_items(split_dir)
     if not items:
@@ -675,6 +759,8 @@ def _process_split(split_dir: Path, config: dict, rng: random.Random, max_per_im
             aug_img = _warp(image, h)
             aug_objs = _transform_objects(objects, h)
             _save_variant(split_dir, stem, tag, aug_img, aug_objs)
+            if debug_enabled:
+                _save_debug_variant(debug_dir, split_dir.name, stem, tag, aug_img, aug_objs)
             stats["created"] += 1
 
         if has_random_pipeline:
@@ -689,6 +775,8 @@ def _process_split(split_dir: Path, config: dict, rng: random.Random, max_per_im
                 aug_img = _color_noise_ops(aug_img, config, rng)
                 aug_img = _apply_cutout_erasing(aug_img, config, rng)
                 _save_variant(split_dir, stem, f"rand{idx + 1}", aug_img, aug_objs)
+                if debug_enabled:
+                    _save_debug_variant(debug_dir, split_dir.name, stem, f"rand{idx + 1}", aug_img, aug_objs)
                 stats["created"] += 1
 
     return stats
@@ -729,7 +817,16 @@ def _has_random_pipeline_enabled(config: dict) -> bool:
     return False
 
 
-def run(dataset_root: Path, config_path: Path, seed_override: int | None, force_apply_val: bool, force_apply_test: bool, max_per_image: int) -> dict:
+def run(
+    dataset_root: Path,
+    config_path: Path,
+    seed_override: int | None,
+    force_apply_val: bool,
+    force_apply_test: bool,
+    max_per_image: int,
+    debug_enabled: bool,
+    debug_dir: Path,
+) -> dict:
     if cv2 is None:
         raise RuntimeError("cv2 is required for augmentation_module.py")
 
@@ -759,8 +856,18 @@ def run(dataset_root: Path, config_path: Path, seed_override: int | None, force_
         "total_created": 0,
     }
 
+    if debug_enabled:
+        debug_dir.mkdir(parents=True, exist_ok=True)
+
     for split_dir in splits:
-        stat = _process_split(split_dir, cfg, rng, max_per_image=max_per_image)
+        stat = _process_split(
+            split_dir,
+            cfg,
+            rng,
+            max_per_image=max_per_image,
+            debug_enabled=debug_enabled,
+            debug_dir=debug_dir,
+        )
         result["splits"].append(stat)
         result["total_created"] += int(stat.get("created", 0))
 
@@ -773,6 +880,8 @@ def main(argv: list[str] | None = None) -> int:
 
     dataset_root = Path(args.dataset_root)
     config_path = Path(args.config) if args.config else dataset_root / "augmentation_config.yaml"
+    debug_enabled = bool(args.debug)
+    debug_dir = Path(args.debug_dir) if args.debug_dir else (dataset_root / "debug")
 
     if not dataset_root.exists():
         LOG.error("Dataset root not found: %s", dataset_root)
@@ -786,6 +895,8 @@ def main(argv: list[str] | None = None) -> int:
             force_apply_val=bool(args.apply_to_val),
             force_apply_test=bool(args.apply_to_test),
             max_per_image=max(0, int(args.max_per_image)),
+            debug_enabled=debug_enabled,
+            debug_dir=debug_dir,
         )
 
         summary_path = dataset_root / "augmentation_run_summary.json"

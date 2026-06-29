@@ -3,11 +3,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import random
 import re
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
+
+import cv2
+import numpy as np
 
 from utils import get_logger
 
@@ -29,6 +33,13 @@ class TileInfo:
     ymin: float
     xmax: float
     ymax: float
+
+
+@dataclass(slots=True)
+class AnnotationShape:
+    class_id: int
+    kind: str
+    points: list[tuple[float, float]]
 
 
 def _find_tile_grid(tiles_folder: Path) -> Path | None:
@@ -177,6 +188,9 @@ def _to_yolo_bbox(tile: TileInfo, extent) -> tuple[float, float, float, float] |
     w = (x2 - x1) / iw
     h = (y2 - y1) / ih
 
+    if not (math.isfinite(cx) and math.isfinite(cy) and math.isfinite(w) and math.isfinite(h)):
+        return None
+
     cx = _clamp(cx, 0.0, 1.0)
     cy = _clamp(cy, 0.0, 1.0)
     w = _clamp(w, 0.0, 1.0)
@@ -184,6 +198,69 @@ def _to_yolo_bbox(tile: TileInfo, extent) -> tuple[float, float, float, float] |
     if w <= 0.0 or h <= 0.0:
         return None
     return cx, cy, w, h
+
+
+def _to_norm_xy(tile: TileInfo, x: float, y: float) -> tuple[float, float]:
+    iw = tile.xmax - tile.xmin
+    ih = tile.ymax - tile.ymin
+    if iw <= 0 or ih <= 0:
+        return 0.0, 0.0
+    nx = _clamp((x - tile.xmin) / iw, 0.0, 1.0)
+    ny = _clamp((tile.ymax - y) / ih, 0.0, 1.0)
+    return float(nx), float(ny)
+
+
+def _polygon_area(points: list[tuple[float, float]]) -> float:
+    if len(points) < 3:
+        return 0.0
+    area = 0.0
+    for i in range(len(points)):
+        x1, y1 = points[i]
+        x2, y2 = points[(i + 1) % len(points)]
+        area += x1 * y2 - x2 * y1
+    return abs(area) * 0.5
+
+
+def _largest_polygon_from_geom(tile: TileInfo, geom) -> list[tuple[float, float]]:
+    best: list[tuple[float, float]] = []
+    best_area = 0.0
+    try:
+        for part in geom:
+            ring: list[tuple[float, float]] = []
+            for pt in part:
+                if pt is None:
+                    if len(ring) >= 3:
+                        area = _polygon_area(ring)
+                        if area > best_area:
+                            best = ring
+                            best_area = area
+                    ring = []
+                    continue
+                ring.append(_to_norm_xy(tile, float(pt.X), float(pt.Y)))
+
+            if len(ring) >= 3:
+                area = _polygon_area(ring)
+                if area > best_area:
+                    best = ring
+                    best_area = area
+    except Exception:
+        return []
+
+    return best
+
+
+def _obb_from_polygon(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    if len(points) < 3:
+        return []
+    pts = np.array(points, dtype=np.float32)
+    rect = cv2.minAreaRect(pts)
+    box = cv2.boxPoints(rect)
+    out: list[tuple[float, float]] = []
+    for px, py in box:
+        if not (math.isfinite(float(px)) and math.isfinite(float(py))):
+            continue
+        out.append((float(_clamp(float(px), 0.0, 1.0)), float(_clamp(float(py), 0.0, 1.0))))
+    return out if len(out) == 4 else []
 
 
 def _build_tile_infos(tiles_folder: Path, images: list[Path]) -> list[TileInfo]:
@@ -210,9 +287,16 @@ def _build_tile_infos(tiles_folder: Path, images: list[Path]) -> list[TileInfo]:
     return infos
 
 
-def _write_labels(tile: TileInfo, labels_path: Path, layers: list[tuple[int, object]]) -> int:
+def _write_labels(
+    tile: TileInfo,
+    labels_path: Path,
+    layers: list[tuple[int, object]],
+    dataset_type: str,
+) -> tuple[int, list[AnnotationShape]]:
     lines: list[str] = []
+    shapes: list[AnnotationShape] = []
     total = 0
+    mode = (dataset_type or "Detection").strip().lower()
     for class_id, layer in layers:
         try:
             with arcpy.da.SearchCursor(layer, ["SHAPE@"], spatial_filter=tile.geom, spatial_relationship="INTERSECTS") as cur:
@@ -225,17 +309,109 @@ def _write_labels(tile: TileInfo, labels_path: Path, layers: list[tuple[int, obj
                     ext = inter.extent
                     if ext is None:
                         continue
-                    bbox = _to_yolo_bbox(tile, ext)
-                    if bbox is None:
+                    if mode == "detection":
+                        bbox = _to_yolo_bbox(tile, ext)
+                        if bbox is None:
+                            continue
+                        cx, cy, w, h = bbox
+                        lines.append(f"{class_id} {cx:.6f} {cy:.6f} {w:.6f} {h:.6f}")
+                        x1 = cx - w * 0.5
+                        y1 = cy - h * 0.5
+                        x2 = cx + w * 0.5
+                        y2 = cy + h * 0.5
+                        shapes.append(AnnotationShape(class_id=class_id, kind="bbox", points=[(x1, y1), (x2, y1), (x2, y2), (x1, y2)]))
+                        total += 1
                         continue
-                    cx, cy, w, h = bbox
-                    lines.append(f"{class_id} {cx:.6f} {cy:.6f} {w:.6f} {h:.6f}")
+
+                    poly = _largest_polygon_from_geom(tile, inter)
+                    if len(poly) < 3:
+                        continue
+
+                    if mode == "segmentation":
+                        coords = " ".join(f"{x:.6f} {y:.6f}" for x, y in poly)
+                        lines.append(f"{class_id} {coords}")
+                        shapes.append(AnnotationShape(class_id=class_id, kind="poly", points=poly))
+                        total += 1
+                        continue
+
+                    obb = _obb_from_polygon(poly)
+                    if len(obb) != 4:
+                        continue
+                    coords = " ".join(f"{x:.6f} {y:.6f}" for x, y in obb)
+                    lines.append(f"{class_id} {coords}")
+                    shapes.append(AnnotationShape(class_id=class_id, kind="obb", points=obb))
                     total += 1
         except Exception as ex:
             LOG.warning("Layer read failed for '%s': %s", getattr(layer, "name", "layer"), ex)
 
     labels_path.write_text("\n".join(lines), encoding="utf-8")
-    return total
+    return total, shapes
+
+
+def _draw_debug_annotations(
+    image_path: Path,
+    debug_image_path: Path,
+    shapes: list[AnnotationShape],
+    class_names: dict[int, str],
+) -> None:
+    image = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
+    if image is None:
+        LOG.warning("Failed to read image for debug draw: %s", image_path)
+        return
+
+    h, w = image.shape[:2]
+    if h <= 0 or w <= 0:
+        LOG.warning("Invalid image size for debug draw: %s", image_path)
+        return
+
+    for shape in shapes:
+        pts = shape.points
+        if not pts:
+            continue
+        pix = []
+        for px, py in pts:
+            if not (math.isfinite(px) and math.isfinite(py)):
+                continue
+            x = int(max(0, min(w - 1, round(px * w))))
+            y = int(max(0, min(h - 1, round(py * h))))
+            pix.append((x, y))
+        if len(pix) < 2:
+            continue
+
+        if shape.kind == "bbox" and len(pix) >= 4:
+            xs = [p[0] for p in pix]
+            ys = [p[1] for p in pix]
+            x1, x2 = min(xs), max(xs)
+            y1, y2 = min(ys), max(ys)
+            if x2 <= x1 or y2 <= y1:
+                continue
+            cv2.rectangle(image, (x1, y1), (x2, y2), (0, 220, 0), 1)
+            anchor_x, anchor_y = x1, y1
+        else:
+            poly = np.array(pix, dtype=np.int32).reshape((-1, 1, 2))
+            cv2.polylines(image, [poly], isClosed=True, color=(0, 220, 0), thickness=1)
+            anchor_x, anchor_y = pix[0]
+
+        class_name = class_names.get(shape.class_id, f"class_{shape.class_id}")
+        text = f"{shape.class_id}:{class_name}"
+        text_y = anchor_y - 4 if anchor_y > 10 else min(h - 2, anchor_y + 10)
+        cv2.putText(image, text, (anchor_x + 1, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 220, 0), 1, cv2.LINE_AA)
+
+    debug_image_path.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(debug_image_path), image)
+
+
+def _is_almost_black_or_white(image_path: Path, dominance_threshold: float = 0.985) -> bool:
+    image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+    if image is None or image.size == 0:
+        return False
+
+    total = float(image.size)
+    black_ratio = float((image <= 10).sum()) / total
+    white_ratio = float((image >= 245).sum()) / total
+    # Фильтруем как «пустые» не только почти полностью черные/белые,
+    # но и комбинации вида «черный + белый» (например, белая полоса сверху и черный остальной тайл).
+    return (black_ratio + white_ratio) >= dominance_threshold
 
 
 def _split(items: list[TileInfo], train: int, val: int, test: int, seed: int) -> dict[str, list[TileInfo]]:
@@ -255,7 +431,16 @@ def _split(items: list[TileInfo], train: int, val: int, test: int, seed: int) ->
     }
 
 
-def _copy_and_label(split_name: str, items: list[TileInfo], dataset_root: Path, layers: list[tuple[int, object]]) -> tuple[int, int]:
+def _copy_and_label(
+    split_name: str,
+    items: list[TileInfo],
+    dataset_root: Path,
+    layers: list[tuple[int, object]],
+    debug_enabled: bool,
+    debug_dir: Path,
+    class_names: dict[int, str],
+    dataset_type: str,
+) -> tuple[int, int]:
     images_dir = dataset_root / split_name / "images"
     labels_dir = dataset_root / split_name / "labels"
     images_dir.mkdir(parents=True, exist_ok=True)
@@ -263,13 +448,31 @@ def _copy_and_label(split_name: str, items: list[TileInfo], dataset_root: Path, 
 
     copied = 0
     labels = 0
+    skipped_empty_visual = 0
     for tile in items:
+        dst_lbl = labels_dir / f"{tile.image_path.stem}.txt"
+        written, shapes = _write_labels(tile, dst_lbl, layers, dataset_type)
+
+        if written == 0 and _is_almost_black_or_white(tile.image_path):
+            skipped_empty_visual += 1
+            try:
+                dst_lbl.unlink(missing_ok=True)
+            except Exception:
+                pass
+            LOG.info("Skipped near-empty visual tile without annotations: %s", tile.image_path.name)
+            continue
+
         dst_img = images_dir / tile.image_path.name
         shutil.copy2(tile.image_path, dst_img)
         copied += 1
+        labels += written
 
-        dst_lbl = labels_dir / f"{tile.image_path.stem}.txt"
-        labels += _write_labels(tile, dst_lbl, layers)
+        if debug_enabled:
+            debug_image = debug_dir / split_name / tile.image_path.name
+            _draw_debug_annotations(dst_img, debug_image, shapes, class_names)
+
+    if skipped_empty_visual > 0:
+        LOG.info("Split '%s': skipped near-empty visual tiles without annotations: %s", split_name, skipped_empty_visual)
 
     return copied, labels
 
@@ -287,7 +490,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--test", type=int, required=True)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--layers", required=True)
+    parser.add_argument("--dataset-type", required=False, default="Detection")
     parser.add_argument("--aprx", required=False)
+    parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--debug-dir", required=False)
     args = parser.parse_args(argv)
 
     tiles_folder = Path(args.tiles_folder)
@@ -301,6 +507,14 @@ def main(argv: list[str] | None = None) -> int:
     if not selected_layers:
         LOG.error("No layers provided")
         return 4
+
+    class_names = {idx: name for idx, name in enumerate(selected_layers)}
+    dataset_type = (args.dataset_type or "Detection").strip()
+
+    debug_enabled = bool(args.debug)
+    debug_dir = Path(args.debug_dir) if args.debug_dir else (dataset_root / "debug")
+    if debug_enabled:
+        debug_dir.mkdir(parents=True, exist_ok=True)
 
     layer_refs: list[tuple[int, object]] = []
     for idx, layer_name in enumerate(selected_layers):
@@ -326,7 +540,16 @@ def main(argv: list[str] | None = None) -> int:
     total_labels = 0
     split_stats: dict[str, dict[str, int]] = {}
     for split_name in ("train", "valid", "test"):
-        copied, labels = _copy_and_label(split_name, split.get(split_name, []), dataset_root, layer_refs)
+        copied, labels = _copy_and_label(
+            split_name,
+            split.get(split_name, []),
+            dataset_root,
+            layer_refs,
+            debug_enabled,
+            debug_dir,
+            class_names,
+            dataset_type,
+        )
         split_stats[split_name] = {"images": copied, "labels": labels}
         total_images += copied
         total_labels += labels
@@ -335,6 +558,7 @@ def main(argv: list[str] | None = None) -> int:
         "tiles_folder": str(tiles_folder),
         "dataset_root": str(dataset_root),
         "layers": selected_layers,
+        "dataset_type": dataset_type,
         "split": split_stats,
         "total_images": total_images,
         "total_labels": total_labels,
