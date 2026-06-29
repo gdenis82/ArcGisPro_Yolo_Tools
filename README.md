@@ -148,10 +148,10 @@ Remove-Item "$env:LOCALAPPDATA\ESRI\ArcGISPro\AssemblyCache\{a79ff6b9-f9a2-4dc3-
 ---
 
 ## 🧩 Добавление в ArcGIS Pro
-Скачайте архив на странице релиза [ArcGisProAppYolo.1.0.0-windows.rar](https://github.com/gdenis82/ArcGisPro_Yolo_Tools/releases)
+Скачайте архив на странице релиза [ArcGisProAppYolo.1.1.0-windows.rar](https://github.com/gdenis82/ArcGisPro_Yolo_Tools/releases)
 
 ```text
-Распакуйте архив ArcGisProAppYolo.1.0.0-windows.rar
+Распакуйте архив ArcGisProAppYolo.1.1.0-windows.rar
 Дважды кликните по файлу ArcGisProAppYolo.esriAddinX (находится в папке ArcGisProAppYolo.1.0.0-windows)
 Нажмите Install Add-In в окне установщика
 Перезапустите ArcGIS Pro
