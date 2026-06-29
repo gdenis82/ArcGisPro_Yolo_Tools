@@ -6,6 +6,7 @@
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <NoWarn>CA1416</NoWarn>
+    <SignAssembly>False</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Config.daml" />
