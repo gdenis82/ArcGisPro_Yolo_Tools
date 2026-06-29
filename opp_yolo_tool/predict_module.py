@@ -17,6 +17,8 @@ import os
 import sys
 from pathlib import Path
 
+import numpy as np
+
 from utils import (
     get_logger,
     is_debug_enabled,
@@ -32,6 +34,11 @@ try:
     import arcpy
 except Exception:
     arcpy = None
+
+try:
+    import cv2
+except Exception:
+    cv2 = None
 
 DEBUG = is_debug_enabled("OPP_YOLO_DEBUG_PREDICT_MODULE")
 ULTRALYTICS_MODEL_NAMES = ["yolov8", "yolov11", "yolo11", "yolo26", "ultralytics"]
@@ -341,6 +348,58 @@ def _build_union_mask_geometry(mask_polys, extent, cell_w, cell_h, sr):
     return merged
 
 
+def _build_obb_from_mask_polys(mask_polys, extent, cell_w, cell_h, sr):
+    if not isinstance(mask_polys, list):
+        return None
+
+    pts = []
+    for poly in mask_polys:
+        if not isinstance(poly, list):
+            continue
+        for pt in poly:
+            if not isinstance(pt, (list, tuple)) or len(pt) < 2:
+                continue
+            try:
+                pts.append([float(pt[0]), float(pt[1])])
+            except Exception:
+                continue
+
+    if len(pts) < 3 or cv2 is None:
+        return None
+
+    try:
+        arr = np.asarray(pts, dtype=np.float32)
+        rect = cv2.minAreaRect(arr)
+        w, h = rect[1]
+        if float(w) <= 0.0 or float(h) <= 0.0:
+            return None
+
+        box = cv2.boxPoints(rect)
+        box_geo = _pixel_polygon_to_geo(extent, box.tolist(), cell_w, cell_h)
+        if len(box_geo) < 4:
+            return None
+        if box_geo[0] != box_geo[-1]:
+            box_geo.append(box_geo[0])
+
+        geom = arcpy.Polygon(arcpy.Array([arcpy.Point(x, y) for x, y in box_geo]), sr)
+        if geom is None:
+            return None
+
+        is_empty_attr = getattr(geom, "isEmpty", None)
+        if callable(is_empty_attr):
+            try:
+                if bool(is_empty_attr()):
+                    return None
+            except Exception:
+                pass
+        elif isinstance(is_empty_attr, bool) and is_empty_attr:
+            return None
+
+        return geom
+    except Exception:
+        return None
+
+
 def _normalize_mask_mode(mask_mode):
     mode = str(mask_mode or "").strip().lower()
     if mode not in ("largest", "union"):
@@ -434,6 +493,7 @@ def _build_detection_record(pred):
 
     bbox = _extract_sahi_bbox_xyxy(pred)
     masks = _extract_sahi_mask_polygons(pred)
+
     return {
         "class": class_name,
         "confidence": conf,
@@ -472,6 +532,7 @@ def _create_outputs_from_json(json_path, output_root, outputs, raster_info, sour
     shp_points = os.path.join(output_root, "Detected_Points.shp")
     shp_bboxes = os.path.join(output_root, "Detected_BBoxes.shp")
     shp_masks = os.path.join(output_root, "Detected_Masks.shp")
+    shp_obbs = os.path.join(output_root, "Detected_OBBBoxes.shp")
 
     if "point" in outputs:
         create_empty_shapefile(shp_points, "POINT", spatial_ref=sr)
@@ -479,6 +540,8 @@ def _create_outputs_from_json(json_path, output_root, outputs, raster_info, sour
         create_empty_shapefile(shp_bboxes, "POLYGON", spatial_ref=sr)
     if "mask" in outputs:
         create_empty_shapefile(shp_masks, "POLYGON", spatial_ref=sr)
+
+    obb_created = False
 
     for det in detections:
         cls = det.get("class", "")
@@ -492,6 +555,7 @@ def _create_outputs_from_json(json_path, output_root, outputs, raster_info, sour
             save_polygon(shp_bboxes, bbox_coords, conf, cls, source_name, "sahi_full", cell_w, cell_h, bounds)
 
         if "mask" in outputs:
+
             primary_mask_poly = _select_primary_mask_polygon(mask_polys)
             mask_geom = None
             if mask_mode == "union":
@@ -503,19 +567,40 @@ def _create_outputs_from_json(json_path, output_root, outputs, raster_info, sour
         else:
             primary_mask_poly = _select_primary_mask_polygon(mask_polys)
 
+        if "obb" in outputs and mask_polys:
+            obb_geom = _build_obb_from_mask_polys(mask_polys, extent, cell_w, cell_h, sr)
+            if obb_geom is not None:
+                if not obb_created:
+                    create_empty_shapefile(shp_obbs, "POLYGON", spatial_ref=sr)
+                    obb_created = True
+                save_polygon_geometry(shp_obbs, obb_geom, conf, cls, source_name, "sahi_full", cell_w, cell_h, bounds)
+
         if "point" in outputs:
-            cx = cy = None
-            if bbox and len(bbox) == 4:
-                x1, y1, x2, y2 = [float(v) for v in bbox]
-                cx = (x1 + x2) / 2.0
-                cy = (y1 + y2) / 2.0
-            elif primary_mask_poly:
-                c = _centroid_from_poly(primary_mask_poly)
-                if c:
-                    cx, cy = c
-            if cx is not None and cy is not None:
-                mx, my = _pixel_to_map(extent, cx, cy, cell_w, cell_h)
-                save_point(shp_points, mx, my, conf, cls, source_name, "sahi_full", cell_w, cell_h, bounds)
+            map_x = map_y = None
+            if mask_polys:
+                point_geom = None
+                if mask_mode == "union":
+                    point_geom = _build_union_mask_geometry(mask_polys, extent, cell_w, cell_h, sr)
+                if point_geom is None and primary_mask_poly:
+                    point_geom = _mask_poly_to_geometry(primary_mask_poly, extent, cell_w, cell_h, sr)
+                if point_geom is not None:
+                    centroid = getattr(point_geom, "centroid", None)
+                    if centroid is not None:
+                        map_x, map_y = float(centroid.X), float(centroid.Y)
+            if map_x is None or map_y is None:
+                cx = cy = None
+                if bbox and len(bbox) == 4:
+                    x1, y1, x2, y2 = [float(v) for v in bbox]
+                    cx = (x1 + x2) / 2.0
+                    cy = (y1 + y2) / 2.0
+                elif primary_mask_poly:
+                    c = _centroid_from_poly(primary_mask_poly)
+                    if c:
+                        cx, cy = c
+                if cx is not None and cy is not None:
+                    map_x, map_y = _pixel_to_map(extent, cx, cy, cell_w, cell_h)
+            if map_x is not None and map_y is not None:
+                save_point(shp_points, map_x, map_y, conf, cls, source_name, "sahi_full", cell_w, cell_h, bounds)
 
 
 def run_predictions(tiles_dir, model_path, confidence, outputs, tile_size=640, nms_overlap=0.5, use_sahi=True, mask_mode="largest"):
@@ -615,7 +700,7 @@ def parse_args(argv):
     p.add_argument("--model", required=False)
     p.add_argument("--confidence", type=float, default=0.5)
     p.add_argument("--tile-size", type=int, default=None)
-    p.add_argument("--outputs", default=None, help="comma-separated: point,mask,bbox")
+    p.add_argument("--outputs", default=None, help="comma-separated: point,mask,bbox,obb")
     p.add_argument("--mask-mode", default=None, choices=["largest", "union"], help="mask strategy: largest contour only or union all contours")
     p.add_argument("--nms-overlap", type=float, default=None, help="NMS overlap threshold for SAHI postprocess")
     p.add_argument("--use-sahi", action="store_true", help="kept for compatibility; SAHI is always used")
@@ -634,7 +719,7 @@ def manual_args():
         "--tile-size",
         "256",
         "--outputs",
-        "point,bbox,mask",
+        "point,bbox,mask,obb",
         "--mask-mode",
         "largest",
     ]
@@ -642,7 +727,7 @@ def manual_args():
 
 
 def main(argv=None):
-    if DEBUG:
+    if True:
         args = manual_args()
     else:
         args = parse_args(argv or sys.argv[1:])

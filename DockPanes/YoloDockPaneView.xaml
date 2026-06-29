@@ -110,7 +110,8 @@
                 </StackPanel>
                 <CheckBox Content="Output Points" IsChecked="{Binding OutputPoints}" Margin="0,5,0,0" ToolTip="Создать слой точек центров объектов."/>
                 <CheckBox Content="Output Masks" IsChecked="{Binding OutputMasks}" Margin="0,5,0,0" ToolTip="Создать слой полигонов масок."/>
-                <CheckBox Content="Output BBoxes" IsChecked="{Binding OutputBBoxes}" Margin="0,5,0,0" ToolTip="Создать слой ограничивающих прямоугольников."/>
+                <CheckBox Content="Output Boxes" IsChecked="{Binding OutputBBoxes}" Margin="0,5,0,0" ToolTip="Создать слой ограничивающих прямоугольников."/>
+                <CheckBox Content="Output OBB" IsChecked="{Binding OutputOBB}" Margin="0,5,0,0" ToolTip="Создать слой ориентированных ограничивающих прямоугольников."/>
                 <CheckBox Content="Use SAHI slicing" IsChecked="{Binding UseSahi}" Margin="0,5,0,0" ToolTip="Оставлено для совместимости; используется SAHI."/>
 
                 <GroupBox Header="Mask Mode" Margin="0,8,0,0" ToolTip="Как формировать маску при нескольких контурах.">

@@ -306,6 +306,13 @@ namespace ArcGisProAppYolo.DockPanes
             set => SetProperty(ref _outputBBoxes, value, () => OutputBBoxes); 
         }
 
+        private bool _outputOBB = false;
+        public bool OutputOBB
+        {
+            get => _outputOBB;
+            set => SetProperty(ref _outputOBB, value, () => OutputOBB);
+        }
+
         private bool _useSahi = true;
         public bool UseSahi
         {
@@ -578,6 +585,7 @@ namespace ArcGisProAppYolo.DockPanes
                         if (OutputPoints) outputsList.Add("point");
                         if (OutputMasks) outputsList.Add("mask");
                         if (OutputBBoxes) outputsList.Add("bbox");
+                        if (OutputOBB) outputsList.Add("obb");
                         var outputsArg = string.Join(",", outputsList);
 
                         SaveUserSettings();
@@ -719,6 +727,7 @@ namespace ArcGisProAppYolo.DockPanes
             public bool OutputPoints { get; set; } = true;
             public bool OutputMasks { get; set; } = true;
             public bool OutputBBoxes { get; set; } = true;
+            public bool OutputOBB { get; set; } = false;
             public bool UseSahi { get; set; } = true;
             public string MaskMode { get; set; } = "largest";
         }
@@ -788,6 +797,7 @@ namespace ArcGisProAppYolo.DockPanes
             OutputPoints = g.OutputPoints;
             OutputMasks = g.OutputMasks;
             OutputBBoxes = g.OutputBBoxes;
+            OutputOBB = g.OutputOBB;
             UseSahi = g.UseSahi;
             SetMaskMode(g.MaskMode);
 
@@ -828,6 +838,7 @@ namespace ArcGisProAppYolo.DockPanes
                 _settingsData.Global.OutputPoints = OutputPoints;
                 _settingsData.Global.OutputMasks = OutputMasks;
                 _settingsData.Global.OutputBBoxes = OutputBBoxes;
+                _settingsData.Global.OutputOBB = OutputOBB;
                 _settingsData.Global.UseSahi = UseSahi;
                 _settingsData.Global.MaskMode = MaskMode;
 

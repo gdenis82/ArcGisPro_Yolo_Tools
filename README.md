@@ -16,7 +16,7 @@
 Проект предоставляет удобный UI для:
 - ✂️ **Нарезки ортофотопланов на тайлы** с настраиваемым размером и overlap
 - 🤖 **Запуска детекции объектов** с использованием YOLO + SAHI (sliced inference + NMS)
-- 📊 **Автоматического импорта результатов** (точки, маски, bounding boxes) в виде shapefiles
+- 📊 **Автоматического импорта результатов** (точки, маски, bounding boxes, OBB) в виде shapefiles
 - 🗺️ **Интеграции результатов** в структуру проекта ArcGIS Pro
 
 ### 🎯 Цель проекта
@@ -204,6 +204,7 @@ MyProject/
    - Output Points: ✅ (центроиды объектов)
    - Output Masks: ✅ (полигоны масок)
    - Output BBoxes: ✅ (прямоугольники)
+    - Output OBB: ✅ (ориентированные прямоугольники)
    - Mask Mode:
      - `Largest` — 1 маска = 1 объект (крупнейший контур)
      - `Union` — объединение всех контуров в одну геометрию
@@ -233,6 +234,7 @@ OrthoMapping/<OrthoName>/
         ├── Detected_Points.shp    # Центроиды объектов
         ├── Detected_Masks.shp     # Полигоны масок
         ├── Detected_BBoxes.shp    # Bounding boxes
+        ├── Detected_OBB.shp       # Oriented bounding boxes
         ├── predict_stdout.log
         └── predict_stderr.log
 ```
@@ -304,7 +306,7 @@ python opp_yolo_tool/predict_module.py \
   --tiles-dir "C:\MyProject\OrthoMapping\Ortho_2024_01\Tiles" \
   --model "C:\Models\yolo11x-seg.pt" \
   --confidence 0.5 \
-  --outputs point,bbox,mask \
+  --outputs point,bbox,mask,obb \
   --mask-mode largest
 ```
 
