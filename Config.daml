@@ -30,15 +30,17 @@
       <groups>
         <!-- comment this out if you have no controls on the Addin tab to avoid
               an empty group-->
-        <group id="ArcGisProAppYolo_Group1" caption="YOLO Tool" appearsOnAddInTab="true">
+        <group id="ArcGisProAppYolo_Group1" caption="YOLO Tool" keytip="YT" appearsOnAddInTab="true">
           <!-- host controls within groups -->
-          <control refID="ArcGisProAppYolo_ShowYoloDock"/>
+          <button refID="ArcGisProAppYolo_ShowYoloDock"/>
+          <button refID="ArcGisProAppYolo_ShowCreateDatasetDock"/>
         </group>
       </groups>
       
       <controls>
         <!-- add your controls here -->
-        <button id="ArcGisProAppYolo_ShowYoloDock" className="ArcGisProAppYolo.Controls.ShowYoloDock" caption="Detection" smallImage="Images\YoloAddIn16.png" largeImage="Images\YoloAddIn32.png"/>
+        <button id="ArcGisProAppYolo_ShowYoloDock" className="ArcGisProAppYolo.Controls.ShowYoloDock" caption="Detection" keytip="YD" smallImage="Images\YoloAddIn16.png" largeImage="Images\YoloAddIn32.png"/>
+        <button id="ArcGisProAppYolo_ShowCreateDatasetDock" className="ArcGisProAppYolo.Controls.ShowCreateDatasetDock" caption="Create Dataset" keytip="CD" smallImage="Images\Augmentation16.png" largeImage="Images\Augmentation32.png"/>
       </controls>
 
       <dockPanes>
@@ -46,10 +48,16 @@
                   className="ArcGisProAppYolo.DockPanes.YoloDockPaneViewModel" 
                   caption="Yolo Detection" 
                   hasHelp="false" 
-                  initiallyVisible="false" 
-                  smallImage="Images\YoloAddIn16.png" 
-                  largeImage="Images\YoloAddIn32.png">
+                  smallImage="Images\YoloAddIn16.png">
           <content className="ArcGisProAppYolo.DockPanes.YoloDockPaneView" />
+        </dockPane>
+
+        <dockPane id="ArcGisProAppYolo_CreateDatasetDockPane"
+                  className="ArcGisProAppYolo.DockPanes.CreateDatasetDockPaneViewModel"
+                  caption="Create Dataset"
+                  hasHelp="false"
+                  smallImage="Images\Augmentation16.png">
+          <content className="ArcGisProAppYolo.DockPanes.CreateDatasetDockPaneView" />
         </dockPane>
       </dockPanes>
       

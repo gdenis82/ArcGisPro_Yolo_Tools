@@ -14,7 +14,9 @@
   <ItemGroup>
     <Content Include="Config.daml" />    
     <Content Include="Images\YoloAddIn16.png" />
-    <Content Include="Images\YoloAddIn32.png" />    
+    <Content Include="Images\YoloAddIn32.png" />
+    <Content Include="Images\Augmentation16.png" />
+    <Content Include="Images\Augmentation32.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".github\copilot-instructions.md" />

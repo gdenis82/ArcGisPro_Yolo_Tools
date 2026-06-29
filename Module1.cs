@@ -39,6 +39,7 @@ namespace ArcGisProAppYolo
         protected override bool CanUnload()
         {
             YoloDockPaneViewModel.HidePane();
+            CreateDatasetDockPaneViewModel.HidePane();
             return true;
         }
 
