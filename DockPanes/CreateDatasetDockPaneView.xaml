@@ -13,6 +13,13 @@
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
+            <CollectionViewSource x:Key="EnabledPreviewOperationsView"
+                                  Source="{Binding EnabledPreviewOperations}">
+                <CollectionViewSource.GroupDescriptions>
+                    <PropertyGroupDescription PropertyName="Category" />
+                </CollectionViewSource.GroupDescriptions>
+            </CollectionViewSource>
+
             <DataTemplate x:Key="AugmentationTemplate">
                 <Border Margin="0,0,0,8" Padding="6" BorderBrush="#22000000" BorderThickness="1" CornerRadius="4">
                     <StackPanel>
@@ -31,48 +38,53 @@
                         <Grid Margin="0,6,0,0" Visibility="{Binding ShowValueSlider, Converter={StaticResource BoolToVisibility}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120" />
-                                <ColumnDefinition Width="90" />
-                                <ColumnDefinition Width="70" />
-                                <ColumnDefinition Width="70" />
+                                <ColumnDefinition Width="76" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="76" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="18" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Значение:" />
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Диапазон:" />
                             <TextBox Grid.Column="1"
                                      Margin="8,0,0,0"
-                                     Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Основной параметр аугментации." />
-                            <TextBlock Grid.Column="2"
-                                       Margin="8,0,0,0"
-                                       VerticalAlignment="Center"
-                                       Foreground="#666"
-                                       Text="{Binding MinValue, StringFormat=min: {0:0.###}}"
-                                       ToolTip="Минимально допустимое значение." />
-                            <TextBlock Grid.Column="3"
-                                       Margin="8,0,0,0"
-                                       VerticalAlignment="Center"
-                                       Foreground="#666"
-                                       Text="{Binding MaxValue, StringFormat=max: {0:0.###}}"
-                                       ToolTip="Максимально допустимое значение." />
+                                     Text="{Binding ValueMinText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Нижняя граница диапазона." />
+                            <Button Grid.Column="2" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementValueMinCommand}" ToolTip="Уменьшить нижний порог." />
+                            <Button Grid.Column="3" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementValueMinCommand}" ToolTip="Увеличить нижний порог." />
+
+                            <TextBox Grid.Column="5"
+                                     Margin="8,0,0,0"
+                                     Text="{Binding ValueMaxText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="Верхняя граница диапазона." />
+                            <Button Grid.Column="6" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementValueMaxCommand}" ToolTip="Уменьшить верхний порог." />
+                            <Button Grid.Column="7" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementValueMaxCommand}" ToolTip="Увеличить верхний порог." />
                         </Grid>
 
                         <Grid Margin="0,4,0,0" Visibility="{Binding ShowProbabilitySlider, Converter={StaticResource BoolToVisibility}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="120" />
-                                <ColumnDefinition Width="90" />
+                                <ColumnDefinition Width="76" />
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="18" />
                                 <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="70" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Вероятность:" />
                             <TextBox Grid.Column="1"
                                      Margin="8,0,0,0"
-                                     Text="{Binding Probability, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Text="{Binding ProbabilityText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      ToolTip="Вероятность применения (0..1)." />
-                            <TextBlock Grid.Column="2"
+                            <Button Grid.Column="2" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementProbabilityCommand}" ToolTip="Уменьшить вероятность." />
+                            <Button Grid.Column="3" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementProbabilityCommand}" ToolTip="Увеличить вероятность." />
+                            <TextBlock Grid.Column="4"
                                        Margin="8,0,0,0"
                                        VerticalAlignment="Center"
                                        Foreground="#666"
                                        Text="{Binding MinProbability, StringFormat=min: {0:0.##}}"
                                        ToolTip="Минимально допустимая вероятность." />
-                            <TextBlock Grid.Column="3"
+                            <TextBlock Grid.Column="5"
                                        Margin="8,0,0,0"
                                        VerticalAlignment="Center"
                                        Foreground="#666"
@@ -235,8 +247,16 @@
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <TextBlock VerticalAlignment="Center" Text="Seed:" Width="60" />
                         <TextBox Width="120" Text="{Binding Seed, UpdateSourceTrigger=PropertyChanged}" ToolTip="Фиксированный seed для воспроизводимости." />
-                        <CheckBox Margin="12,0,0,0" VerticalAlignment="Center" Content="Apply to Val" IsChecked="{Binding ApplyToVal}" />
-                        <CheckBox Margin="8,0,0,0" VerticalAlignment="Center" Content="Apply to Test" IsChecked="{Binding ApplyToTest}" />
+                        <CheckBox Margin="12,0,0,0"
+                                  VerticalAlignment="Center"
+                                  Content="Apply to Val"
+                                  IsChecked="{Binding ApplyToVal}"
+                                  ToolTip="Если включено: аугментация применяется также к split valid (валидация). Обычно оставляют выключенным, чтобы метрики отражали качество на 'чистых' данных." />
+                        <CheckBox Margin="8,0,0,0"
+                                  VerticalAlignment="Center"
+                                  Content="Apply to Test"
+                                  IsChecked="{Binding ApplyToTest}"
+                                  ToolTip="Если включено: аугментация применяется также к split test. Рекомендуется выключать для объективного финального теста модели." />
                     </StackPanel>
 
                     <TabControl>
@@ -267,21 +287,64 @@
                         <TabItem Header="👁️ Preview">
                             <StackPanel Margin="6">
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Width="120" VerticalAlignment="Center" Text="Source tile:" />
-                                    <TextBox Width="220" Text="{Binding PreviewTile, UpdateSourceTrigger=PropertyChanged}" ToolTip="Идентификатор/имя тайла для превью." />
-                                    <Button Margin="8,0,0,0" Content="Apply Random" Command="{Binding ApplyRandomPreviewCommand}" ToolTip="Сгенерировать случайную комбинацию активных аугментаций." />
+                                    <TextBlock Width="120" VerticalAlignment="Center" Text="Tiles folder:" />
+                                    <TextBox Width="220" Text="{Binding PreviewTilesFolder, UpdateSourceTrigger=PropertyChanged}" ToolTip="Путь к папке с тайлами для превью." />
+                                    <Button Margin="8,0,0,0" Content="Browse" Command="{Binding BrowsePreviewTilesFolderCommand}" ToolTip="Выбрать папку с тайлами для превью." />
+                                    <Button Margin="8,0,0,0"
+                                            Content="Apply Next Transform"
+                                            Command="{Binding ApplyRandomPreviewCommand}"
+                                            ToolTip="Применить следующую трансформацию (по кругу) к текущему изображению." />
                                 </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Width="120" VerticalAlignment="Center" Text="Apply selected:" />
+                                    <ComboBox Width="220"
+                                              ItemsSource="{Binding Source={StaticResource EnabledPreviewOperationsView}}"
+                                              DisplayMemberPath="DisplayName"
+                                              SelectedItem="{Binding SelectedPreviewOperation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              ToolTip="Выберите включённую трансформацию, чтобы сразу применить её к текущему тайлу.">
+                                        <ComboBox.GroupStyle>
+                                            <GroupStyle>
+                                                <GroupStyle.HeaderTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#666" />
+                                                    </DataTemplate>
+                                                </GroupStyle.HeaderTemplate>
+                                            </GroupStyle>
+                                        </ComboBox.GroupStyle>
+                                    </ComboBox>
+                                  <TextBlock VerticalAlignment="Center"
+                                           Foreground="#2F6F9F"
+                                           FontStyle="Italic"
+                                           Text="Applying transform..."
+                                           Visibility="{Binding IsPreviewApplying, Converter={StaticResource BoolToVisibility}}" />
+                                </StackPanel>
+
+                                
+
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Width="120" VerticalAlignment="Center" Text="Current tile:" />
+                                    <TextBox Width="220" Text="{Binding PreviewTile, UpdateSourceTrigger=PropertyChanged}" ToolTip="Текущий файл тайла для превью." />
+                                    <Button Margin="8,0,0,0" Width="28" Content="←" Command="{Binding PreviewPrevImageCommand}" ToolTip="Предыдущее изображение" />
+                                    <TextBlock Margin="8,0,8,0" Width="70" VerticalAlignment="Center" TextAlignment="Center" Text="{Binding PreviewImagePosition}" />
+                                    <Button Width="28" Content="→" Command="{Binding PreviewNextImageCommand}" ToolTip="Следующее изображение" />
+                                </StackPanel>
+
+                                <TextBlock Margin="0,0,0,8"
+                                           Foreground="#555"
+                                           TextWrapping="Wrap"
+                                           Text="Выберите папку с тайлами: загрузится первое изображение. Кнопками ←/→ переключайте изображения. По кнопке Apply Next Transform применяется одна следующая включённая трансформация." />
 
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <Border Grid.Column="0" Margin="0,0,6,0" Height="160" BorderThickness="1" BorderBrush="#33000000" Background="#11000000">
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Original" Foreground="#666" />
+                                    <Border Grid.Column="0" Margin="0,0,6,0" Height="180" BorderThickness="1" BorderBrush="#33000000" Background="#11000000">
+                                        <Image Stretch="Uniform" Source="{Binding OriginalPreviewImagePath}" />
                                     </Border>
-                                    <Border Grid.Column="1" Margin="6,0,0,0" Height="160" BorderThickness="1" BorderBrush="#33000000" Background="#11000000">
-                                        <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" Text="Augmented" Foreground="#666" />
+                                    <Border Grid.Column="1" Margin="6,0,0,0" Height="180" BorderThickness="1" BorderBrush="#33000000" Background="#11000000">
+                                        <Image Stretch="Uniform" Source="{Binding AugmentedPreviewImagePath}" />
                                     </Border>
                                 </Grid>
 
@@ -293,20 +356,33 @@
                         <TabItem Header="💾 Presets">
                             <StackPanel Margin="6">
                                 <TextBlock Text="Built-in presets:" FontWeight="Bold" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Foreground="#555"
+                                           TextWrapping="Wrap"
+                                           Text="Preset — это готовый набор включённых аугментаций, их диапазонов и вероятностей. Используйте как стартовую точку, затем подстраивайте под ваш датасет." />
                                 <WrapPanel Margin="0,6,0,0">
-                                    <Button Margin="0,0,6,6" Content="None" Command="{Binding ApplyPresetCommand}" CommandParameter="None" />
-                                    <Button Margin="0,0,6,6" Content="Light" Command="{Binding ApplyPresetCommand}" CommandParameter="Light" />
-                                    <Button Margin="0,0,6,6" Content="Standard" Command="{Binding ApplyPresetCommand}" CommandParameter="Standard" />
-                                    <Button Margin="0,0,6,6" Content="Aggressive" Command="{Binding ApplyPresetCommand}" CommandParameter="Aggressive" />
-                                    <Button Margin="0,0,6,6" Content="Outdoor Aerial" Command="{Binding ApplyPresetCommand}" CommandParameter="Outdoor Aerial" />
+                                    <Button Margin="0,0,6,6" Content="None" Command="{Binding ApplyPresetCommand}" CommandParameter="None" ToolTip="Отключить все аугментации и вернуть дефолтные значения." />
+                                    <Button Margin="0,0,6,6" Content="Light" Command="{Binding ApplyPresetCommand}" CommandParameter="Light" ToolTip="Лёгкие и безопасные аугментации: минимальные геометрические/цветовые изменения." />
+                                    <Button Margin="0,0,6,6" Content="Standard" Command="{Binding ApplyPresetCommand}" CommandParameter="Standard" ToolTip="Сбалансированный набор для большинства задач детекции/сегментации." />
+                                    <Button Margin="0,0,6,6" Content="Aggressive" Command="{Binding ApplyPresetCommand}" CommandParameter="Aggressive" ToolTip="Максимально сильные аугментации. Используйте осторожно и проверяйте деградацию качества." />
+                                    <Button Margin="0,0,6,6" Content="Outdoor Aerial" Command="{Binding ApplyPresetCommand}" CommandParameter="Outdoor Aerial" ToolTip="Набор под уличные/аэрофото сцены: тени, туман, локальный контраст." />
                                 </WrapPanel>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <Button Content="Save preset (.json)" Command="{Binding SavePresetCommand}" Margin="0,0,6,0" />
-                                    <Button Content="Load preset (.json)" Command="{Binding LoadPresetCommand}" />
+                                    <Button Content="Save preset (.json)"
+                                            Command="{Binding SavePresetCommand}"
+                                            Margin="0,0,6,0"
+                                            ToolTip="Сохранить текущие настройки аугментаций (включая диапазоны и вероятности) в JSON файл для повторного использования." />
+                                    <Button Content="Load preset (.json)"
+                                            Command="{Binding LoadPresetCommand}"
+                                            ToolTip="Загрузить ранее сохранённый JSON preset и применить его к текущей панели." />
                                 </StackPanel>
 
-                                <Button Margin="0,8,0,0" Content="Export hyp.yaml" Command="{Binding ExportHypCommand}" Width="160" />
+                                <Button Margin="0,8,0,0"
+                                        Content="Export hyp.yaml"
+                                        Command="{Binding ExportHypCommand}"
+                                        Width="160"
+                                        ToolTip="Экспорт параметров в формат hyp.yaml для Ultralytics YOLO (удобно для CLI-тренировок)." />
                             </StackPanel>
                         </TabItem>
                     </TabControl>

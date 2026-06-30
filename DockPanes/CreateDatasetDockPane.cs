@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Threading;
+using System.ComponentModel;
 
 namespace ArcGisProAppYolo.DockPanes
 {
@@ -26,7 +27,12 @@ namespace ArcGisProAppYolo.DockPanes
         private readonly string _settingsPath;
         private bool _isAdjustingSplit;
         private bool _isRunning;
+        private bool _isPreviewApplying;
+        private bool _isUpdatingPreviewOperationSelection;
         private UserSettingsData _settingsData = new UserSettingsData();
+        private int _previewOperationIndex = -1;
+        private int _previewImageIndex = -1;
+        private List<string> _previewImagePaths = new List<string>();
 
         protected CreateDatasetDockPaneViewModel()
         {
@@ -46,6 +52,7 @@ namespace ArcGisProAppYolo.DockPanes
             ColorAugmentations = new ObservableCollection<AugmentationOption>();
             NoiseAugmentations = new ObservableCollection<AugmentationOption>();
             AdvancedAugmentations = new ObservableCollection<AugmentationOption>();
+            EnabledPreviewOperations = new ObservableCollection<PreviewOperationItem>();
 
             InitAugmentationCollections();
             LoadProjectInfo();
@@ -94,6 +101,7 @@ namespace ArcGisProAppYolo.DockPanes
         public ObservableCollection<AugmentationOption> ColorAugmentations { get; }
         public ObservableCollection<AugmentationOption> NoiseAugmentations { get; }
         public ObservableCollection<AugmentationOption> AdvancedAugmentations { get; }
+        public ObservableCollection<PreviewOperationItem> EnabledPreviewOperations { get; }
 
         private string _selectedOrtho = string.Empty;
         public string SelectedOrtho
@@ -110,6 +118,23 @@ namespace ArcGisProAppYolo.DockPanes
             {
                 if (SetProperty(ref _tileSize, value, () => TileSize))
                     UpdateValidationWarnings();
+            }
+        }
+
+        private PreviewOperationItem _selectedPreviewOperation;
+        public PreviewOperationItem SelectedPreviewOperation
+        {
+            get => _selectedPreviewOperation;
+            set
+            {
+                if (SetProperty(ref _selectedPreviewOperation, value, () => SelectedPreviewOperation))
+                {
+                    if (_isUpdatingPreviewOperationSelection)
+                        return;
+
+                    if (value != null)
+                        _ = ApplySelectedPreviewOperationAsync(value);
+                }
             }
         }
 
@@ -246,11 +271,46 @@ namespace ArcGisProAppYolo.DockPanes
             set => SetProperty(ref _previewTile, value, () => PreviewTile);
         }
 
+        private string _previewTilesFolder = string.Empty;
+        public string PreviewTilesFolder
+        {
+            get => _previewTilesFolder;
+            set
+            {
+                if (SetProperty(ref _previewTilesFolder, value, () => PreviewTilesFolder))
+                {
+                    LoadPreviewImagesFromFolder(value);
+                    SaveUserSettings();
+                }
+            }
+        }
+
         private string _previewAppliedTransforms = "No preview generated.";
         public string PreviewAppliedTransforms
         {
             get => _previewAppliedTransforms;
             set => SetProperty(ref _previewAppliedTransforms, value, () => PreviewAppliedTransforms);
+        }
+
+        private string _originalPreviewImagePath = string.Empty;
+        public string OriginalPreviewImagePath
+        {
+            get => _originalPreviewImagePath;
+            set => SetProperty(ref _originalPreviewImagePath, value, () => OriginalPreviewImagePath);
+        }
+
+        private string _augmentedPreviewImagePath = string.Empty;
+        public string AugmentedPreviewImagePath
+        {
+            get => _augmentedPreviewImagePath;
+            set => SetProperty(ref _augmentedPreviewImagePath, value, () => AugmentedPreviewImagePath);
+        }
+
+        private string _previewImagePosition = "0/0";
+        public string PreviewImagePosition
+        {
+            get => _previewImagePosition;
+            set => SetProperty(ref _previewImagePosition, value, () => PreviewImagePosition);
         }
 
         private string _validationWarning = string.Empty;
@@ -341,6 +401,20 @@ namespace ArcGisProAppYolo.DockPanes
 
         public string RunButtonText => IsRunning ? "Running..." : "Create Dataset";
 
+        public bool IsPreviewApplying
+        {
+            get => _isPreviewApplying;
+            set
+            {
+                if (SetProperty(ref _isPreviewApplying, value, () => IsPreviewApplying))
+                {
+                    ((RelayCommand)ApplyRandomPreviewCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand)PreviewNextImageCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand)PreviewPrevImageCommand)?.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -370,7 +444,19 @@ namespace ArcGisProAppYolo.DockPanes
         public ICommand ExportHypCommand => _exportHypCommand ??= new RelayCommand(_ => ExportHypYaml());
 
         private ICommand _applyRandomPreviewCommand;
-        public ICommand ApplyRandomPreviewCommand => _applyRandomPreviewCommand ??= new RelayCommand(_ => ApplyRandomPreview());
+        public ICommand ApplyRandomPreviewCommand => _applyRandomPreviewCommand ??= new RelayCommand(async _ => await ApplyRandomPreviewAsync(), _ => !IsPreviewApplying);
+
+        private ICommand _browsePreviewTileCommand;
+        public ICommand BrowsePreviewTileCommand => _browsePreviewTileCommand ??= new RelayCommand(_ => BrowsePreviewTile());
+
+        private ICommand _browsePreviewTilesFolderCommand;
+        public ICommand BrowsePreviewTilesFolderCommand => _browsePreviewTilesFolderCommand ??= new RelayCommand(_ => BrowsePreviewTilesFolder());
+
+        private ICommand _previewNextImageCommand;
+        public ICommand PreviewNextImageCommand => _previewNextImageCommand ??= new RelayCommand(_ => MovePreviewImage(1), _ => !IsPreviewApplying);
+
+        private ICommand _previewPrevImageCommand;
+        public ICommand PreviewPrevImageCommand => _previewPrevImageCommand ??= new RelayCommand(_ => MovePreviewImage(-1), _ => !IsPreviewApplying);
 
         #endregion
 
@@ -520,42 +606,48 @@ namespace ArcGisProAppYolo.DockPanes
             GeometryAugmentations.Add(new AugmentationOption("Rotate 270° CW", true, 1, 0, 1, 1.0, 0.0, 1.0, true));
             GeometryAugmentations.Add(new AugmentationOption("Flip Horizontal", true, 1, 0, 1, 1.0, 0.0, 1.0, true));
             GeometryAugmentations.Add(new AugmentationOption("Flip Vertical", false, 1, 0, 1, 1.0, 0.0, 1.0, true));
-            GeometryAugmentations.Add(new AugmentationOption("Shear X", false, 0, -20, 20, 0.5, 0.0, 1.0));
-            GeometryAugmentations.Add(new AugmentationOption("Shear Y", false, 0, -20, 20, 0.5, 0.0, 1.0));
-            GeometryAugmentations.Add(new AugmentationOption("Scale", false, 1.0, 0.5, 1.5, 0.5, 0.0, 1.0));
-            GeometryAugmentations.Add(new AugmentationOption("Translate X", false, 0.0, -0.2, 0.2, 0.5, 0.0, 1.0));
-            GeometryAugmentations.Add(new AugmentationOption("Translate Y", false, 0.0, -0.2, 0.2, 0.5, 0.0, 1.0));
-            GeometryAugmentations.Add(new AugmentationOption("Perspective", false, 0.0, 0.0, 0.002, 0.3, 0.0, 1.0));
-            GeometryAugmentations.Add(new AugmentationOption("Random Crop", false, 1.0, 0.7, 1.0, 0.5, 0.0, 1.0));
+            GeometryAugmentations.Add(new AugmentationOption("Shear X", false, 0, -20, 20, -6, 6, 0.5, 0.0, 1.0));
+            GeometryAugmentations.Add(new AugmentationOption("Shear Y", false, 0, -20, 20, -6, 6, 0.5, 0.0, 1.0));
+            GeometryAugmentations.Add(new AugmentationOption("Scale", false, 1.0, 0.5, 1.5, 0.9, 1.1, 0.5, 0.0, 1.0));
+            GeometryAugmentations.Add(new AugmentationOption("Translate X", false, 0.0, -0.2, 0.2, -0.08, 0.08, 0.5, 0.0, 1.0));
+            GeometryAugmentations.Add(new AugmentationOption("Translate Y", false, 0.0, -0.2, 0.2, -0.08, 0.08, 0.5, 0.0, 1.0));
+            GeometryAugmentations.Add(new AugmentationOption("Perspective", false, 0.0, 0.0, 0.002, 0.0002, 0.0008, 0.3, 0.0, 1.0));
+            GeometryAugmentations.Add(new AugmentationOption("Random Crop", false, 1.0, 0.7, 1.0, 0.82, 0.95, 0.5, 0.0, 1.0));
 
-            ColorAugmentations.Add(new AugmentationOption("Hue", false, 0.0, -0.5, 0.5, 0.7, 0.0, 1.0));
-            ColorAugmentations.Add(new AugmentationOption("Saturation", false, 1.0, 0.0, 2.0, 0.7, 0.0, 1.0));
-            ColorAugmentations.Add(new AugmentationOption("Value (Brightness)", false, 1.0, 0.0, 2.0, 0.7, 0.0, 1.0));
-            ColorAugmentations.Add(new AugmentationOption("Contrast", false, 1.0, 0.5, 1.5, 0.5, 0.0, 1.0));
-            ColorAugmentations.Add(new AugmentationOption("CLAHE", false, 2.0, 1.0, 6.0, 0.3, 0.0, 1.0));
-            ColorAugmentations.Add(new AugmentationOption("Auto Contrast", false, 0, 0, 10, 0.3, 0.0, 1.0));
+            ColorAugmentations.Add(new AugmentationOption("Hue", false, 0.0, -0.5, 0.5, -0.03, 0.03, 0.7, 0.0, 1.0));
+            ColorAugmentations.Add(new AugmentationOption("Saturation", false, 1.0, 0.0, 2.0, 0.85, 1.2, 0.7, 0.0, 1.0));
+            ColorAugmentations.Add(new AugmentationOption("Value (Brightness)", false, 1.0, 0.0, 2.0, 0.9, 1.15, 0.7, 0.0, 1.0));
+            ColorAugmentations.Add(new AugmentationOption("Contrast", false, 1.0, 0.5, 1.5, 0.9, 1.15, 0.5, 0.0, 1.0));
+            ColorAugmentations.Add(new AugmentationOption("CLAHE", false, 2.0, 1.0, 6.0, 1.5, 3.0, 0.3, 0.0, 1.0));
+            ColorAugmentations.Add(new AugmentationOption("Auto Contrast", false, 0, 0, 10, 0, 4, 0.3, 0.0, 1.0));
             ColorAugmentations.Add(new AugmentationOption("Grayscale", false, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, showValueSlider: false));
-            ColorAugmentations.Add(new AugmentationOption("Solarize", false, 128, 0, 255, 0.2, 0.0, 1.0));
-            ColorAugmentations.Add(new AugmentationOption("Posterize", false, 8, 1, 8, 0.2, 0.0, 1.0));
+            ColorAugmentations.Add(new AugmentationOption("Solarize", false, 128, 0, 255, 96, 160, 0.2, 0.0, 1.0));
+            ColorAugmentations.Add(new AugmentationOption("Posterize", false, 8, 1, 8, 5, 8, 0.2, 0.0, 1.0));
             ColorAugmentations.Add(new AugmentationOption("Equalize", false, 1, 0, 1, 0.3, 0.0, 1.0, true, showValueSlider: false));
 
-            NoiseAugmentations.Add(new AugmentationOption("Gaussian Blur", false, 1, 1, 11, 0.3, 0.0, 1.0));
-            NoiseAugmentations.Add(new AugmentationOption("Median Blur", false, 1, 1, 11, 0.3, 0.0, 1.0));
-            NoiseAugmentations.Add(new AugmentationOption("Gaussian Noise", false, 0, 0, 50, 0.3, 0.0, 1.0));
-            NoiseAugmentations.Add(new AugmentationOption("Salt & Pepper", false, 0.0, 0.0, 0.1, 0.3, 0.0, 1.0));
+            NoiseAugmentations.Add(new AugmentationOption("Gaussian Blur", false, 1, 1, 11, 1, 5, 0.3, 0.0, 1.0));
+            NoiseAugmentations.Add(new AugmentationOption("Median Blur", false, 1, 1, 11, 1, 5, 0.3, 0.0, 1.0));
+            NoiseAugmentations.Add(new AugmentationOption("Gaussian Noise", false, 0, 0, 50, 4, 16, 0.3, 0.0, 1.0));
+            NoiseAugmentations.Add(new AugmentationOption("Salt & Pepper", false, 0.0, 0.0, 0.1, 0.005, 0.025, 0.3, 0.0, 1.0));
             NoiseAugmentations.Add(new AugmentationOption("Random Shadow", false, 1, 0, 1, 0.3, 0.0, 1.0, true, showValueSlider: false));
-            NoiseAugmentations.Add(new AugmentationOption("Rain / Fog", false, 0.0, 0.0, 1.0, 0.3, 0.0, 1.0));
+            NoiseAugmentations.Add(new AugmentationOption("Rain / Fog", false, 0.0, 0.0, 1.0, 0.1, 0.35, 0.3, 0.0, 1.0));
 
             AdvancedAugmentations.Add(new AugmentationOption("Mosaic (4 img)", false, 1, 0, 1, 0.3, 0.0, 1.0, true, showValueSlider: false));
-            AdvancedAugmentations.Add(new AugmentationOption("MixUp", false, 0.0, 0.0, 1.0, 0.1, 0.0, 1.0));
-            AdvancedAugmentations.Add(new AugmentationOption("Copy-Paste", false, 0, 0, 5, 0.2, 0.0, 1.0));
-            AdvancedAugmentations.Add(new AugmentationOption("CutOut", false, 0.0, 0.0, 0.5, 0.3, 0.0, 1.0));
+            AdvancedAugmentations.Add(new AugmentationOption("MixUp", false, 0.0, 0.0, 1.0, 0.15, 0.35, 0.1, 0.0, 1.0));
+            AdvancedAugmentations.Add(new AugmentationOption("Copy-Paste", false, 0, 0, 5, 1, 3, 0.2, 0.0, 1.0));
+            AdvancedAugmentations.Add(new AugmentationOption("CutOut", false, 0.0, 0.0, 0.5, 0.08, 0.2, 0.3, 0.0, 1.0));
             AdvancedAugmentations.Add(new AugmentationOption("Erasing", false, 0.0, 0.0, 1.0, 0.3, 0.0, 1.0, showValueSlider: false));
 
             foreach (var option in AllAugmentations())
             {
-                option.PropertyChanged += (_, __) => RecalculateEstimatedStatistics();
+                option.PropertyChanged += (_, __) =>
+                {
+                    RecalculateEstimatedStatistics();
+                    RefreshEnabledPreviewOperations();
+                };
             }
+
+            RefreshEnabledPreviewOperations();
         }
 
         private IEnumerable<AugmentationOption> AllAugmentations()
@@ -577,6 +669,8 @@ namespace ArcGisProAppYolo.DockPanes
                 return;
 
             option.Value = option.DefaultValue;
+            option.ValueMin = option.DefaultValueMin;
+            option.ValueMax = option.DefaultValueMax;
             option.Probability = option.DefaultProbability;
             option.IsEnabled = false;
         }
@@ -617,6 +711,8 @@ namespace ArcGisProAppYolo.DockPanes
                 {
                     a.IsEnabled = false;
                     a.Value = a.DefaultValue;
+                    a.ValueMin = a.DefaultValueMin;
+                    a.ValueMax = a.DefaultValueMax;
                     a.Probability = a.DefaultProbability;
                 }
             }
@@ -626,40 +722,44 @@ namespace ArcGisProAppYolo.DockPanes
                 EnableByName("Rotate 180°", true);
                 EnableByName("Rotate 270° CW", true);
                 EnableByName("Flip Horizontal", true);
-                EnableByName("Hue", true, 0.05, 0.7);
-                EnableByName("Saturation", true, 1.2, 0.7);
-                EnableByName("Value (Brightness)", true, 1.1, 0.7);
+                EnableByName("Hue", true, null, null, -0.02, 0.02, 0.7);
+                EnableByName("Saturation", true, null, null, 0.9, 1.1, 0.7);
+                EnableByName("Value (Brightness)", true, null, null, 0.92, 1.1, 0.7);
+                EnableByName("Contrast", true, null, null, 0.92, 1.08, 0.4);
             }
             else if (string.Equals(presetName, "Standard", StringComparison.OrdinalIgnoreCase))
             {
                 ApplyBuiltInPreset("Light");
-                EnableByName("Scale", true, 1.0, 0.5);
-                EnableByName("Translate X", true, 0.1, 0.5);
-                EnableByName("Translate Y", true, 0.1, 0.5);
-                EnableByName("Perspective", true, 0.001, 0.3);
-                EnableByName("Gaussian Blur", true, 3, 0.3);
-                EnableByName("Gaussian Noise", true, 10, 0.3);
+                EnableByName("Scale", true, null, null, 0.9, 1.12, 0.5);
+                EnableByName("Translate X", true, null, null, -0.08, 0.08, 0.5);
+                EnableByName("Translate Y", true, null, null, -0.08, 0.08, 0.5);
+                EnableByName("Perspective", true, null, null, 0.0002, 0.001, 0.3);
+                EnableByName("Gaussian Blur", true, null, null, 1, 5, 0.3);
+                EnableByName("Gaussian Noise", true, null, null, 4, 14, 0.3);
             }
             else if (string.Equals(presetName, "Aggressive", StringComparison.OrdinalIgnoreCase))
             {
                 foreach (var a in AllAugmentations())
                 {
                     a.IsEnabled = true;
+                    a.ValueMin = a.MinValue;
+                    a.ValueMax = a.MaxValue;
                     a.Probability = Math.Max(0.5, a.Probability);
                 }
             }
             else if (string.Equals(presetName, "Outdoor Aerial", StringComparison.OrdinalIgnoreCase))
             {
                 ApplyBuiltInPreset("Standard");
-                EnableByName("Rain / Fog", true, 0.3, 0.4);
+                EnableByName("Rain / Fog", true, null, null, 0.12, 0.35, 0.4);
                 EnableByName("Random Shadow", true, 1, 0.3);
-                EnableByName("CLAHE", true, 2.0, 0.4);
+                EnableByName("CLAHE", true, null, null, 1.8, 3.2, 0.4);
+                EnableByName("Auto Contrast", true, null, null, 0, 5, 0.25);
             }
 
             RecalculateEstimatedStatistics();
         }
 
-        private void EnableByName(string name, bool enabled, double? value = null, double? probability = null)
+        private void EnableByName(string name, bool enabled, double? value = null, double? probability = null, double? valueMin = null, double? valueMax = null, double? rangeProbability = null)
         {
             var target = AllAugmentations().FirstOrDefault(a => string.Equals(a.Name, name, StringComparison.OrdinalIgnoreCase));
             if (target == null)
@@ -670,6 +770,15 @@ namespace ArcGisProAppYolo.DockPanes
                 target.Value = value.Value;
             if (probability.HasValue)
                 target.Probability = probability.Value;
+            if (valueMin.HasValue)
+                target.ValueMin = valueMin.Value;
+            if (valueMax.HasValue)
+                target.ValueMax = valueMax.Value;
+            if (rangeProbability.HasValue)
+                target.Probability = rangeProbability.Value;
+
+            if (!value.HasValue && valueMin.HasValue && valueMax.HasValue)
+                target.Value = (target.ValueMin + target.ValueMax) * 0.5;
         }
 
         private void SavePresetToJson()
@@ -762,6 +871,11 @@ namespace ArcGisProAppYolo.DockPanes
                     continue;
 
                 target.IsEnabled = item.IsEnabled;
+                if (item.ValueMin.HasValue)
+                    target.ValueMin = item.ValueMin.Value;
+                if (item.ValueMax.HasValue)
+                    target.ValueMax = item.ValueMax.Value;
+
                 target.Value = item.Value;
                 target.Probability = item.Probability;
             }
@@ -784,6 +898,8 @@ namespace ArcGisProAppYolo.DockPanes
                     Name = a.Name,
                     IsEnabled = a.IsEnabled,
                     Value = a.Value,
+                    ValueMin = a.ValueMin,
+                    ValueMax = a.ValueMax,
                     Probability = a.Probability
                 }).ToList()
             };
@@ -793,25 +909,393 @@ namespace ArcGisProAppYolo.DockPanes
 
         #region Actions
 
-        private void ApplyRandomPreview()
+        private void BrowsePreviewTile()
         {
-            var active = AllAugmentations()
-                .Where(a => a.IsEnabled && a.Probability > 0)
-                .Select(a => $"{a.Name}(p={a.Probability:0.##})")
-                .ToList();
-
-            if (active.Count == 0)
+            try
             {
-                PreviewAppliedTransforms = "No active augmentations.";
+                var dlg = new OpenFileDialog
+                {
+                    Filter = "Image files|*.png;*.jpg;*.jpeg;*.bmp;*.tif;*.tiff|All files|*.*",
+                    Title = "Select preview tile image"
+                };
+
+                if (dlg.ShowDialog() == true)
+                {
+                    PreviewTile = dlg.FileName;
+                    SetCurrentPreviewImage(dlg.FileName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.Logger.Log($"ERROR: Browse preview tile failed: {ex}");
+            }
+        }
+
+        private void BrowsePreviewTilesFolder()
+        {
+            try
+            {
+                var dlg = new OpenFolderDialog
+                {
+                    Title = "Select preview tiles folder"
+                };
+
+                if (dlg.ShowDialog() == true)
+                    PreviewTilesFolder = dlg.FolderName;
+            }
+            catch (Exception ex)
+            {
+                Tools.Logger.Log($"ERROR: Browse preview folder failed: {ex}");
+            }
+        }
+
+        private void MovePreviewImage(int delta)
+        {
+            if (_previewImagePaths == null || _previewImagePaths.Count == 0)
+            {
+                PreviewImagePosition = "0/0";
                 return;
             }
 
-            var random = new Random(Seed == 0 ? Environment.TickCount : Seed);
-            var sampled = active.Where(_ => random.NextDouble() >= 0.5).ToList();
-            if (sampled.Count == 0)
-                sampled.Add(active[random.Next(active.Count)]);
+            _previewImageIndex += delta;
+            if (_previewImageIndex < 0)
+                _previewImageIndex = _previewImagePaths.Count - 1;
+            if (_previewImageIndex >= _previewImagePaths.Count)
+                _previewImageIndex = 0;
 
-            PreviewAppliedTransforms = string.Join(", ", sampled);
+            SetCurrentPreviewImage(_previewImagePaths[_previewImageIndex]);
+        }
+
+        private void SetCurrentPreviewImage(string imagePath)
+        {
+            if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
+                return;
+
+            PreviewTile = imagePath;
+            OriginalPreviewImagePath = imagePath;
+            AugmentedPreviewImagePath = string.Empty;
+            PreviewAppliedTransforms = "No preview generated.";
+            _previewOperationIndex = -1;
+
+            if (_previewImagePaths != null && _previewImagePaths.Count > 0)
+            {
+                var idx = _previewImagePaths.FindIndex(p => string.Equals(p, imagePath, StringComparison.OrdinalIgnoreCase));
+                if (idx >= 0)
+                    _previewImageIndex = idx;
+                PreviewImagePosition = $"{Math.Max(1, _previewImageIndex + 1)}/{_previewImagePaths.Count}";
+            }
+            else
+            {
+                _previewImageIndex = 0;
+                PreviewImagePosition = "1/1";
+            }
+        }
+
+        private void LoadPreviewImagesFromFolder(string folderPath)
+        {
+            try
+            {
+                _previewImagePaths = new List<string>();
+                _previewImageIndex = -1;
+                _previewOperationIndex = -1;
+
+                if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
+                {
+                    PreviewTile = string.Empty;
+                    OriginalPreviewImagePath = string.Empty;
+                    AugmentedPreviewImagePath = string.Empty;
+                    PreviewAppliedTransforms = "No preview generated.";
+                    PreviewImagePosition = "0/0";
+                    return;
+                }
+
+                var exts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff" };
+                _previewImagePaths = Directory.EnumerateFiles(folderPath, "*.*", SearchOption.TopDirectoryOnly)
+                    .Where(p => exts.Contains(Path.GetExtension(p)))
+                    .OrderBy(p => p)
+                    .ToList();
+
+                if (_previewImagePaths.Count == 0)
+                {
+                    PreviewTile = string.Empty;
+                    OriginalPreviewImagePath = string.Empty;
+                    AugmentedPreviewImagePath = string.Empty;
+                    PreviewAppliedTransforms = "No preview generated.";
+                    PreviewImagePosition = "0/0";
+                    return;
+                }
+
+                _previewImageIndex = 0;
+                SetCurrentPreviewImage(_previewImagePaths[0]);
+            }
+            catch (Exception ex)
+            {
+                Tools.Logger.Log($"ERROR: Load preview images from folder failed: {ex}");
+                PreviewImagePosition = "0/0";
+            }
+        }
+
+        private async Task ApplyRandomPreviewAsync()
+        {
+            await ApplyPreviewAsync(null, true);
+        }
+
+        private async Task ApplySelectedPreviewOperationAsync(PreviewOperationItem operation)
+        {
+            var key = operation?.Key;
+            if (string.IsNullOrWhiteSpace(key))
+                return;
+
+            await ApplyPreviewAsync(key, false);
+
+            try
+            {
+                _isUpdatingPreviewOperationSelection = true;
+                SelectedPreviewOperation = null;
+            }
+            finally
+            {
+                _isUpdatingPreviewOperationSelection = false;
+            }
+        }
+
+        private async Task ApplyPreviewAsync(string forcedPreviewOp, bool advanceRoundRobin)
+        {
+            if (IsPreviewApplying)
+                return;
+
+            var previewImage = ResolvePreviewTilePath();
+            if (string.IsNullOrWhiteSpace(previewImage) || !File.Exists(previewImage))
+            {
+                PreviewAppliedTransforms = "Preview tile not found. Укажите путь к тайлу или имя существующего тайла.";
+                return;
+            }
+
+            try
+            {
+                IsPreviewApplying = true;
+                PreviewAppliedTransforms = "Applying transform... Пожалуйста, подождите.";
+
+                var active = AllAugmentations().Where(a => a.IsEnabled).ToList();
+                if (active.Count == 0)
+                {
+                    PreviewAppliedTransforms = "No active augmentations.";
+                    OriginalPreviewImagePath = previewImage;
+                    AugmentedPreviewImagePath = previewImage;
+                    return;
+                }
+
+                var scriptPath = ResolveAugmentationScriptPath();
+                if (string.IsNullOrWhiteSpace(scriptPath) || !File.Exists(scriptPath))
+                {
+                    PreviewAppliedTransforms = "augmentation_module.py not found.";
+                    return;
+                }
+
+                var tempRoot = Path.Combine(Path.GetTempPath(), "ArcGisProYoloPreview");
+                Directory.CreateDirectory(tempRoot);
+                var token = Guid.NewGuid().ToString("N");
+                var configPath = Path.Combine(tempRoot, $"preview_config_{token}.yaml");
+                var outPath = Path.Combine(tempRoot, $"preview_out_{token}.jpg");
+                var summaryPath = Path.Combine(tempRoot, $"preview_summary_{token}.json");
+
+                File.WriteAllText(configPath, BuildAugmentationConfigYaml(), Encoding.UTF8);
+
+                var orderedOps = GetOrderedPreviewOperations();
+                string selectedOp = forcedPreviewOp;
+                if (string.IsNullOrWhiteSpace(selectedOp) && advanceRoundRobin && orderedOps.Count > 0)
+                {
+                    _previewOperationIndex = (_previewOperationIndex + 1) % orderedOps.Count;
+                    selectedOp = orderedOps[_previewOperationIndex];
+                }
+
+                var args = $"--config \"{configPath}\" --preview-image \"{previewImage}\" --preview-output \"{outPath}\" --preview-summary \"{summaryPath}\"";
+                if (!string.IsNullOrWhiteSpace(selectedOp))
+                    args += $" --preview-op \"{selectedOp}\"";
+                if (Seed != 0)
+                    args += $" --seed {Seed}";
+
+                var stdout = new StringBuilder();
+                var stderr = new StringBuilder();
+                var exit = await Tools.PythonRunner.RunPythonScriptAsync(
+                    null,
+                    scriptPath,
+                    args,
+                    s => { if (!string.IsNullOrWhiteSpace(s)) stdout.AppendLine(s); },
+                    e => { if (!string.IsNullOrWhiteSpace(e)) stderr.AppendLine(e); });
+
+                if (exit != 0 || !File.Exists(outPath))
+                {
+                    PreviewAppliedTransforms = "Preview generation failed.";
+                    if (stderr.Length > 0)
+                        AppendProgressLine($"WARN: Preview stderr: {stderr.ToString().Trim()}");
+                    return;
+                }
+
+                OriginalPreviewImagePath = previewImage;
+                AugmentedPreviewImagePath = outPath;
+
+                if (File.Exists(summaryPath))
+                {
+                    var text = File.ReadAllText(summaryPath, Encoding.UTF8);
+                    using var doc = JsonDocument.Parse(text);
+                    var parts = new List<string>();
+
+                    if (doc.RootElement.TryGetProperty("applied_steps", out var arr) && arr.ValueKind == JsonValueKind.Array)
+                    {
+                        var steps = arr.EnumerateArray()
+                            .Where(x => x.ValueKind == JsonValueKind.String)
+                            .Select(x => x.GetString())
+                            .Where(x => !string.IsNullOrWhiteSpace(x))
+                            .ToList();
+                        if (steps.Count > 0)
+                            parts.Add("Applied: " + string.Join(" → ", steps));
+                    }
+
+                    PreviewAppliedTransforms = parts.Count > 0 ? string.Join(" | ", parts) : "Preview generated.";
+                }
+                else
+                {
+                    PreviewAppliedTransforms = "Preview generated.";
+                }
+            }
+            catch (Exception ex)
+            {
+                Tools.Logger.Log($"ERROR: Apply preview failed: {ex}");
+                PreviewAppliedTransforms = "Preview generation failed.";
+            }
+            finally
+            {
+                IsPreviewApplying = false;
+            }
+        }
+
+        private void RefreshEnabledPreviewOperations()
+        {
+            try
+            {
+                var selectedKey = SelectedPreviewOperation?.Key;
+                var items = GetOrderedPreviewOperationItems();
+
+                _isUpdatingPreviewOperationSelection = true;
+                EnabledPreviewOperations.Clear();
+                foreach (var item in items)
+                    EnabledPreviewOperations.Add(item);
+
+                if (!string.IsNullOrWhiteSpace(selectedKey))
+                    SelectedPreviewOperation = EnabledPreviewOperations.FirstOrDefault(x => string.Equals(x.Key, selectedKey, StringComparison.OrdinalIgnoreCase));
+                else
+                    SelectedPreviewOperation = null;
+            }
+            finally
+            {
+                _isUpdatingPreviewOperationSelection = false;
+            }
+        }
+
+        private string ResolvePreviewTilePath()
+        {
+            try
+            {
+                var input = (PreviewTile ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(input))
+                    return string.Empty;
+
+                if (File.Exists(input))
+                    return input;
+
+                var projectUri = Project.Current?.URI;
+                if (string.IsNullOrWhiteSpace(projectUri) || string.IsNullOrWhiteSpace(SelectedOrtho))
+                    return string.Empty;
+
+                var projectDir = Path.GetDirectoryName(projectUri);
+                var orthoFolder = Path.Combine(projectDir ?? string.Empty, "OrthoMapping", SelectedOrtho);
+                var imagesFolder = Path.Combine(orthoFolder, "Tiles", $"{TileSize}px", "Images");
+                if (!Directory.Exists(imagesFolder))
+                    return string.Empty;
+
+                var hasExt = Path.HasExtension(input);
+                if (hasExt)
+                {
+                    var direct = Path.Combine(imagesFolder, input);
+                    if (File.Exists(direct))
+                        return direct;
+                }
+                else
+                {
+                    var exts = new[] { ".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff" };
+                    foreach (var ext in exts)
+                    {
+                        var candidate = Path.Combine(imagesFolder, input + ext);
+                        if (File.Exists(candidate))
+                            return candidate;
+                    }
+                }
+
+                return string.Empty;
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        private List<string> GetOrderedPreviewOperations()
+        {
+            return GetOrderedPreviewOperationItems().Select(x => x.Key).ToList();
+        }
+
+        private List<PreviewOperationItem> GetOrderedPreviewOperationItems()
+        {
+            var ops = new List<PreviewOperationItem>();
+
+            void AddIfEnabled(string category, string displayName)
+            {
+                var opt = AllAugmentations().FirstOrDefault(a => string.Equals(a.Name, displayName, StringComparison.OrdinalIgnoreCase));
+                if (opt?.IsEnabled == true)
+                    ops.Add(new PreviewOperationItem
+                    {
+                        Category = category,
+                        DisplayName = displayName,
+                        Key = NormalizeYamlKey(displayName)
+                    });
+            }
+
+            AddIfEnabled("Geometry", "Rotate 90° CW");
+            AddIfEnabled("Geometry", "Rotate 180°");
+            AddIfEnabled("Geometry", "Rotate 270° CW");
+            AddIfEnabled("Geometry", "Flip Horizontal");
+            AddIfEnabled("Geometry", "Flip Vertical");
+            AddIfEnabled("Geometry", "Shear X");
+            AddIfEnabled("Geometry", "Shear Y");
+            AddIfEnabled("Geometry", "Scale");
+            AddIfEnabled("Geometry", "Translate X");
+            AddIfEnabled("Geometry", "Translate Y");
+            AddIfEnabled("Geometry", "Perspective");
+            AddIfEnabled("Geometry", "Random Crop");
+
+            AddIfEnabled("Color", "Hue");
+            AddIfEnabled("Color", "Saturation");
+            AddIfEnabled("Color", "Value (Brightness)");
+            AddIfEnabled("Color", "Contrast");
+            AddIfEnabled("Color", "CLAHE");
+            AddIfEnabled("Color", "Auto Contrast");
+            AddIfEnabled("Color", "Grayscale");
+            AddIfEnabled("Color", "Solarize");
+            AddIfEnabled("Color", "Posterize");
+            AddIfEnabled("Color", "Equalize");
+
+            AddIfEnabled("Noise & Blur", "Gaussian Blur");
+            AddIfEnabled("Noise & Blur", "Median Blur");
+            AddIfEnabled("Noise & Blur", "Gaussian Noise");
+            AddIfEnabled("Noise & Blur", "Salt & Pepper");
+            AddIfEnabled("Noise & Blur", "Random Shadow");
+            AddIfEnabled("Noise & Blur", "Rain / Fog");
+
+            AddIfEnabled("Advanced", "CutOut");
+            AddIfEnabled("Advanced", "Erasing");
+
+            return ops;
         }
 
         private async Task RunCreateDatasetAsync()
@@ -957,7 +1441,7 @@ namespace ArcGisProAppYolo.DockPanes
                 }
 
                 var reportPath = Path.Combine(experimentFolder, "dataset_report.txt");
-                File.WriteAllText(reportPath, BuildDatasetReport(experimentName, orthoFolder, hasAugmentation), Encoding.UTF8);
+                File.WriteAllText(reportPath, BuildDatasetReport(experimentName, orthoFolder, experimentFolder, hasAugmentation), Encoding.UTF8);
                 AppendProgressLine("INFO: dataset_report.txt generated.");
 
                 if (hasAugmentation)
@@ -1460,7 +1944,7 @@ namespace ArcGisProAppYolo.DockPanes
                     continue;
                 }
 
-                sb.AppendLine($"  {key}: {{value: {option.Value.ToString("0.######", ci)}, prob: {option.Probability.ToString("0.######", ci)}, enabled: {option.IsEnabled.ToString().ToLowerInvariant()}}}");
+                sb.AppendLine($"  {key}: {{value: {option.Value.ToString("0.######", ci)}, value_min: {option.ValueMin.ToString("0.######", ci)}, value_max: {option.ValueMax.ToString("0.######", ci)}, prob: {option.Probability.ToString("0.######", ci)}, enabled: {option.IsEnabled.ToString().ToLowerInvariant()}}}");
             }
         }
 
@@ -1478,7 +1962,7 @@ namespace ArcGisProAppYolo.DockPanes
                 .Replace(" ", "_");
         }
 
-        private string BuildDatasetReport(string experimentName, string orthoFolder, bool hasAugmentation)
+        private string BuildDatasetReport(string experimentName, string orthoFolder, string experimentFolder, bool hasAugmentation)
         {
             var sb = new StringBuilder();
             sb.AppendLine("Dataset Report");
@@ -1516,7 +2000,41 @@ namespace ArcGisProAppYolo.DockPanes
             sb.AppendLine("Enabled augmentations:");
             foreach (var aug in AllAugmentations().Where(a => a.IsEnabled))
             {
-                sb.AppendLine($"- {aug.Name}: value={aug.Value:0.###}, prob={aug.Probability:0.###}");
+                sb.AppendLine($"- {aug.Name}: range=[{aug.ValueMin:0.###}..{aug.ValueMax:0.###}], prob={aug.Probability:0.###}");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("Per-split annotation statistics:");
+            foreach (var split in new[] { "train", "valid", "test" })
+            {
+                var stats = AnalyzeSplitAnnotations(experimentFolder, split);
+                if (!stats.Exists)
+                {
+                    sb.AppendLine($"- {split}: not found");
+                    continue;
+                }
+
+                sb.AppendLine($"- {split}:");
+                sb.AppendLine($"  images: {stats.ImageCount}");
+                sb.AppendLine($"  label files: {stats.LabelFileCount}");
+                sb.AppendLine($"  missing label files: {stats.MissingLabelCount}");
+                sb.AppendLine($"  empty annotations: {stats.EmptyAnnotationCount}");
+                sb.AppendLine($"  images with objects: {stats.ImagesWithObjects}");
+                sb.AppendLine($"  total objects: {stats.TotalObjects}");
+
+                if (stats.TotalObjects <= 0 || stats.ClassObjectCounts.Count == 0)
+                {
+                    sb.AppendLine("  class balance: no objects");
+                }
+                else
+                {
+                    sb.AppendLine("  class balance:");
+                    foreach (var kv in stats.ClassObjectCounts.OrderBy(x => x.Key))
+                    {
+                        var pct = kv.Value * 100.0 / stats.TotalObjects;
+                        sb.AppendLine($"    class {kv.Key}: {kv.Value} ({pct:0.##}%)");
+                    }
+                }
             }
 
             sb.AppendLine();
@@ -1531,6 +2049,89 @@ namespace ArcGisProAppYolo.DockPanes
                 sb.AppendLine("- Train split is below 50%.");
 
             return sb.ToString();
+        }
+
+        private sealed class SplitAnnotationStats
+        {
+            public bool Exists { get; set; }
+            public int ImageCount { get; set; }
+            public int LabelFileCount { get; set; }
+            public int MissingLabelCount { get; set; }
+            public int EmptyAnnotationCount { get; set; }
+            public int ImagesWithObjects { get; set; }
+            public int TotalObjects { get; set; }
+            public Dictionary<int, int> ClassObjectCounts { get; } = new Dictionary<int, int>();
+        }
+
+        private static SplitAnnotationStats AnalyzeSplitAnnotations(string experimentFolder, string splitName)
+        {
+            var stats = new SplitAnnotationStats();
+            try
+            {
+                var splitRoot = Path.Combine(experimentFolder, splitName);
+                var imagesDir = Path.Combine(splitRoot, "images");
+                var labelsDir = Path.Combine(splitRoot, "labels");
+                if (!Directory.Exists(imagesDir) || !Directory.Exists(labelsDir))
+                    return stats;
+
+                stats.Exists = true;
+                var imgExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff" };
+
+                var imageFiles = Directory.EnumerateFiles(imagesDir)
+                    .Where(f => imgExt.Contains(Path.GetExtension(f)))
+                    .ToList();
+                stats.ImageCount = imageFiles.Count;
+
+                stats.LabelFileCount = Directory.EnumerateFiles(labelsDir, "*.txt", SearchOption.TopDirectoryOnly).Count();
+
+                foreach (var imagePath in imageFiles)
+                {
+                    var stem = Path.GetFileNameWithoutExtension(imagePath);
+                    var labelPath = Path.Combine(labelsDir, stem + ".txt");
+                    if (!File.Exists(labelPath))
+                    {
+                        stats.MissingLabelCount++;
+                        stats.EmptyAnnotationCount++;
+                        continue;
+                    }
+
+                    var lineCount = 0;
+                    foreach (var raw in File.ReadLines(labelPath))
+                    {
+                        var line = raw?.Trim();
+                        if (string.IsNullOrWhiteSpace(line))
+                            continue;
+
+                        var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length < 2)
+                            continue;
+
+                        if (!int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.InvariantCulture, out var clsId)
+                            && !int.TryParse(parts[0], NumberStyles.Integer, CultureInfo.CurrentCulture, out clsId)
+                            && !(double.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out var clsDouble) && (clsId = (int)Math.Round(clsDouble)) >= 0))
+                        {
+                            continue;
+                        }
+
+                        lineCount++;
+                        stats.TotalObjects++;
+                        if (!stats.ClassObjectCounts.ContainsKey(clsId))
+                            stats.ClassObjectCounts[clsId] = 0;
+                        stats.ClassObjectCounts[clsId]++;
+                    }
+
+                    if (lineCount == 0)
+                        stats.EmptyAnnotationCount++;
+                    else
+                        stats.ImagesWithObjects++;
+                }
+
+                return stats;
+            }
+            catch
+            {
+                return stats;
+            }
         }
 
         private string BuildHypYaml()
@@ -1609,6 +2210,7 @@ namespace ArcGisProAppYolo.DockPanes
             public bool ApplyToTest { get; set; }
             public int Seed { get; set; }
             public string DatasetType { get; set; } = "Detection";
+            public string PreviewTilesFolder { get; set; } = string.Empty;
             public List<string> PresetHistory { get; set; } = new List<string>();
             public AugmentationPresetDto LastAugmentations { get; set; } = new AugmentationPresetDto();
         }
@@ -1672,6 +2274,9 @@ namespace ArcGisProAppYolo.DockPanes
                 Seed = g.Seed;
                 SelectedDatasetType = string.IsNullOrWhiteSpace(g.DatasetType) ? "Detection" : g.DatasetType;
 
+                if (!string.IsNullOrWhiteSpace(g.PreviewTilesFolder) && Directory.Exists(g.PreviewTilesFolder))
+                    PreviewTilesFolder = g.PreviewTilesFolder;
+
                 if (g.LastAugmentations != null)
                     ApplyPresetDto(g.LastAugmentations);
 
@@ -1716,6 +2321,7 @@ namespace ArcGisProAppYolo.DockPanes
                 g.ApplyToTest = ApplyToTest;
                 g.Seed = Seed;
                 g.DatasetType = SelectedDatasetType;
+                g.PreviewTilesFolder = PreviewTilesFolder ?? string.Empty;
                 g.LastAugmentations = BuildPresetDto();
 
                 if (g.PresetHistory == null)
@@ -1765,6 +2371,8 @@ namespace ArcGisProAppYolo.DockPanes
             public string Name { get; set; } = string.Empty;
             public bool IsEnabled { get; set; }
             public double Value { get; set; }
+            public double? ValueMin { get; set; }
+            public double? ValueMax { get; set; }
             public double Probability { get; set; }
         }
 
@@ -1772,6 +2380,8 @@ namespace ArcGisProAppYolo.DockPanes
         {
             private bool _isEnabled;
             private double _value;
+            private double _valueMin;
+            private double _valueMax;
             private double _probability;
 
             public AugmentationOption(
@@ -1788,14 +2398,59 @@ namespace ArcGisProAppYolo.DockPanes
                 bool? showProbabilitySlider = null,
                 string description = null,
                 string recommendation = null)
+                : this(
+                    name,
+                    isEnabled,
+                    defaultValue,
+                    minValue,
+                    maxValue,
+                    defaultValue,
+                    defaultValue,
+                    defaultProbability,
+                    minProbability,
+                    maxProbability,
+                    isDeterministicOnly,
+                    showValueSlider,
+                    showProbabilitySlider,
+                    description,
+                    recommendation)
+            {
+            }
+
+            public AugmentationOption(
+                string name,
+                bool isEnabled,
+                double defaultValue,
+                double minValue,
+                double maxValue,
+                double defaultValueMin,
+                double defaultValueMax,
+                double defaultProbability,
+                double minProbability,
+                double maxProbability,
+                bool isDeterministicOnly = false,
+                bool? showValueSlider = null,
+                bool? showProbabilitySlider = null,
+                string description = null,
+                string recommendation = null)
             {
                 Name = name;
                 _isEnabled = isEnabled;
                 _value = defaultValue;
+                _valueMin = defaultValueMin;
+                _valueMax = defaultValueMax;
                 _probability = defaultProbability;
                 DefaultValue = defaultValue;
                 MinValue = minValue;
                 MaxValue = maxValue;
+                DefaultValueMin = Math.Max(minValue, Math.Min(defaultValueMin, maxValue));
+                DefaultValueMax = Math.Max(minValue, Math.Min(defaultValueMax, maxValue));
+                if (DefaultValueMin > DefaultValueMax)
+                {
+                    var tmp = DefaultValueMin;
+                    DefaultValueMin = DefaultValueMax;
+                    DefaultValueMax = tmp;
+                }
                 DefaultProbability = defaultProbability;
                 MinProbability = minProbability;
                 MaxProbability = maxProbability;
@@ -1809,6 +2464,8 @@ namespace ArcGisProAppYolo.DockPanes
                 var guidance = BuildGuidance(name);
                 Description = string.IsNullOrWhiteSpace(description) ? guidance.description : description;
                 Recommendation = string.IsNullOrWhiteSpace(recommendation) ? guidance.recommendation : recommendation;
+
+                ApplyRangeClamp();
             }
 
             public string Name { get; }
@@ -1816,6 +2473,8 @@ namespace ArcGisProAppYolo.DockPanes
             public double DefaultValue { get; }
             public double MinValue { get; }
             public double MaxValue { get; }
+            public double DefaultValueMin { get; }
+            public double DefaultValueMax { get; }
             public double DefaultProbability { get; }
             public double MinProbability { get; }
             public double MaxProbability { get; }
@@ -1823,6 +2482,8 @@ namespace ArcGisProAppYolo.DockPanes
             public bool ShowProbabilitySlider { get; }
             public string Description { get; }
             public string Recommendation { get; }
+            public int Precision => ComputePrecision();
+            public double SpinStep => ComputeSpinStep();
 
             public bool IsEnabled
             {
@@ -1838,7 +2499,55 @@ namespace ArcGisProAppYolo.DockPanes
                     var clamped = value;
                     if (clamped < MinValue) clamped = MinValue;
                     if (clamped > MaxValue) clamped = MaxValue;
-                    SetProperty(ref _value, clamped, () => Value);
+                    clamped = Math.Round(clamped, Precision, MidpointRounding.AwayFromZero);
+                    if (SetProperty(ref _value, clamped, () => Value))
+                    {
+                        NotifyPropertyChanged(nameof(ValueText));
+                        if (_valueMin > _value)
+                            SetProperty(ref _valueMin, _value, () => ValueMin);
+                        if (_valueMax < _value)
+                            SetProperty(ref _valueMax, _value, () => ValueMax);
+                    }
+                }
+            }
+
+            public double ValueMin
+            {
+                get => _valueMin;
+                set
+                {
+                    var clamped = value;
+                    if (clamped < MinValue) clamped = MinValue;
+                    if (clamped > MaxValue) clamped = MaxValue;
+                    if (clamped > ValueMax)
+                        clamped = ValueMax;
+                    clamped = Math.Round(clamped, Precision, MidpointRounding.AwayFromZero);
+                    if (SetProperty(ref _valueMin, clamped, () => ValueMin))
+                    {
+                        NotifyPropertyChanged(nameof(ValueMinText));
+                        if (Value < _valueMin)
+                            SetProperty(ref _value, _valueMin, () => Value);
+                    }
+                }
+            }
+
+            public double ValueMax
+            {
+                get => _valueMax;
+                set
+                {
+                    var clamped = value;
+                    if (clamped < MinValue) clamped = MinValue;
+                    if (clamped > MaxValue) clamped = MaxValue;
+                    if (clamped < ValueMin)
+                        clamped = ValueMin;
+                    clamped = Math.Round(clamped, Precision, MidpointRounding.AwayFromZero);
+                    if (SetProperty(ref _valueMax, clamped, () => ValueMax))
+                    {
+                        NotifyPropertyChanged(nameof(ValueMaxText));
+                        if (Value > _valueMax)
+                            SetProperty(ref _value, _valueMax, () => Value);
+                    }
                 }
             }
 
@@ -1850,7 +2559,53 @@ namespace ArcGisProAppYolo.DockPanes
                     var clamped = value;
                     if (clamped < MinProbability) clamped = MinProbability;
                     if (clamped > MaxProbability) clamped = MaxProbability;
-                    SetProperty(ref _probability, clamped, () => Probability);
+                    clamped = Math.Round(clamped, 2, MidpointRounding.AwayFromZero);
+                    if (SetProperty(ref _probability, clamped, () => Probability))
+                        NotifyPropertyChanged(nameof(ProbabilityText));
+                }
+            }
+
+            public string ValueText
+            {
+                get => Value.ToString($"F{Precision}", CultureInfo.CurrentCulture);
+                set
+                {
+                    if (TryParseDouble(value, out var parsed))
+                        Value = parsed;
+                    NotifyPropertyChanged(nameof(ValueText));
+                }
+            }
+
+            public string ValueMinText
+            {
+                get => ValueMin.ToString($"F{Precision}", CultureInfo.CurrentCulture);
+                set
+                {
+                    if (TryParseDouble(value, out var parsed))
+                        ValueMin = parsed;
+                    NotifyPropertyChanged(nameof(ValueMinText));
+                }
+            }
+
+            public string ValueMaxText
+            {
+                get => ValueMax.ToString($"F{Precision}", CultureInfo.CurrentCulture);
+                set
+                {
+                    if (TryParseDouble(value, out var parsed))
+                        ValueMax = parsed;
+                    NotifyPropertyChanged(nameof(ValueMaxText));
+                }
+            }
+
+            public string ProbabilityText
+            {
+                get => Probability.ToString("F2", CultureInfo.CurrentCulture);
+                set
+                {
+                    if (TryParseDouble(value, out var parsed))
+                        Probability = parsed;
+                    NotifyPropertyChanged(nameof(ProbabilityText));
                 }
             }
 
@@ -1860,6 +2615,55 @@ namespace ArcGisProAppYolo.DockPanes
                     && (name.StartsWith("Rotate", StringComparison.OrdinalIgnoreCase)
                         || name.StartsWith("Flip", StringComparison.OrdinalIgnoreCase));
             }
+
+            private void ApplyRangeClamp()
+            {
+                ValueMin = _valueMin;
+                ValueMax = _valueMax;
+                Value = _value;
+            }
+
+            private int ComputePrecision()
+            {
+                var step = ComputeSpinStep();
+                if (step >= 1.0)
+                    return 0;
+                if (step >= 0.1)
+                    return 1;
+                if (step >= 0.01)
+                    return 2;
+                if (step >= 0.001)
+                    return 3;
+                return 4;
+            }
+
+            private double ComputeSpinStep()
+            {
+                var span = Math.Abs(MaxValue - MinValue);
+                if (span <= 0.01)
+                    return 0.0001;
+                if (span <= 0.1)
+                    return 0.001;
+                if (span <= 1.0)
+                    return 0.001;
+                if (span <= 10.0)
+                    return 0.1;
+                return 1.0;
+            }
+
+            private static bool TryParseDouble(string text, out double value)
+            {
+                if (double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value))
+                    return true;
+                return double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+            }
+
+            public ICommand IncrementValueMinCommand => new RelayCommand(_ => ValueMin += SpinStep);
+            public ICommand DecrementValueMinCommand => new RelayCommand(_ => ValueMin -= SpinStep);
+            public ICommand IncrementValueMaxCommand => new RelayCommand(_ => ValueMax += SpinStep);
+            public ICommand DecrementValueMaxCommand => new RelayCommand(_ => ValueMax -= SpinStep);
+            public ICommand IncrementProbabilityCommand => new RelayCommand(_ => Probability += 0.01);
+            public ICommand DecrementProbabilityCommand => new RelayCommand(_ => Probability -= 0.01);
 
             private static (string description, string recommendation) BuildGuidance(string name)
             {
@@ -2021,6 +2825,13 @@ namespace ArcGisProAppYolo.DockPanes
                 get => _isSelected;
                 set => SetProperty(ref _isSelected, value, () => IsSelected);
             }
+        }
+
+        internal sealed class PreviewOperationItem
+        {
+            public string Category { get; set; } = string.Empty;
+            public string DisplayName { get; set; } = string.Empty;
+            public string Key { get; set; } = string.Empty;
         }
 
         #endregion

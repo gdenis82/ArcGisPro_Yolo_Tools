@@ -37,7 +37,7 @@ class YoloObject:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset-root", required=True)
+    parser.add_argument("--dataset-root", required=False)
     parser.add_argument("--config", required=False)
     parser.add_argument("--seed", type=int, required=False)
     parser.add_argument("--apply-to-val", action="store_true")
@@ -45,6 +45,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--max-per-image", type=int, default=2)
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--debug-dir", required=False)
+    parser.add_argument("--preview-image", required=False)
+    parser.add_argument("--preview-output", required=False)
+    parser.add_argument("--preview-summary", required=False)
+    parser.add_argument("--preview-op", required=False)
     return parser.parse_args(argv)
 
 
@@ -289,7 +293,12 @@ def _apply_scalar_prob(rng: random.Random, spec: dict | bool) -> tuple[bool, flo
     if isinstance(spec, bool):
         return spec, 1.0, 1.0
     enabled = _to_bool(spec.get("enabled", False), False)
-    value = _to_float(spec.get("value", 0.0), 0.0)
+    base_value = _to_float(spec.get("value", 0.0), 0.0)
+    value_min = _to_float(spec.get("value_min", base_value), base_value)
+    value_max = _to_float(spec.get("value_max", base_value), base_value)
+    if value_min > value_max:
+        value_min, value_max = value_max, value_min
+    value = rng.uniform(value_min, value_max)
     prob = _to_float(spec.get("prob", 0.0), 0.0)
     if not enabled:
         return False, value, prob
@@ -874,9 +883,189 @@ def run(
     return result
 
 
+def _force_enabled_prob_one(cfg: dict) -> dict:
+    out = json.loads(json.dumps(cfg))
+    for group_name in ["geometry", "color", "noise", "advanced"]:
+        group = out.get(group_name, {})
+        if not isinstance(group, dict):
+            continue
+        for key, spec in list(group.items()):
+            if isinstance(spec, dict) and _to_bool(spec.get("enabled", False), False):
+                spec["prob"] = 1.0
+    return out
+
+
+def run_preview(
+    preview_image: Path,
+    preview_output: Path,
+    config_path: Path,
+    seed_override: int | None,
+    preview_op: str | None,
+) -> dict:
+    if cv2 is None:
+        raise RuntimeError("cv2 is required for augmentation_module.py")
+    if not preview_image.exists():
+        raise FileNotFoundError(f"Preview image not found: {preview_image}")
+
+    cfg = _load_yaml(config_path)
+    cfg = _force_enabled_prob_one(cfg)
+
+    seed = seed_override if seed_override is not None else int(_to_float(cfg.get("seed", 0), 0))
+    if seed <= 0:
+        seed = random.randint(1, 10_000_000)
+    rng = random.Random(seed)
+    np.random.seed(seed)
+
+    img = cv2.imread(str(preview_image), cv2.IMREAD_COLOR)
+    if img is None:
+        raise RuntimeError(f"Failed to read image: {preview_image}")
+
+    objs: list[YoloObject] = []
+    applied_steps: list[str] = []
+
+    deterministic_geo = [
+        ("rotate_90_cw", _rot90_h),
+        ("rotate_180", _rot180_h),
+        ("rotate_270_cw", _rot270_h),
+        ("flip_horizontal", _hflip_h),
+        ("flip_vertical", _vflip_h),
+    ]
+    random_geo = ["shear_x", "shear_y", "scale", "translate_x", "translate_y", "perspective", "random_crop"]
+    color_ops = ["hue", "saturation", "value_brightness", "contrast", "clahe", "auto_contrast", "grayscale", "solarize", "posterize", "equalize"]
+    noise_ops = ["gaussian_blur", "median_blur", "gaussian_noise", "salt_and_pepper", "random_shadow", "rain_fog"]
+    advanced_preview_supported = ["cutout", "erasing"]
+
+    candidates: list[tuple[str, str]] = []
+    geo = cfg.get("geometry", {})
+    color = cfg.get("color", {})
+    noise = cfg.get("noise", {})
+    advanced = cfg.get("advanced", {})
+
+    for key, _ in deterministic_geo:
+        if _to_bool(geo.get(key, False), False):
+            candidates.append(("det_geo", key))
+
+    for key in random_geo:
+        spec = geo.get(key, {})
+        if isinstance(spec, dict) and _to_bool(spec.get("enabled", False), False):
+            candidates.append(("rand_geo", key))
+
+    for key in color_ops:
+        spec = color.get(key, {})
+        if isinstance(spec, dict) and _to_bool(spec.get("enabled", False), False):
+            candidates.append(("color", key))
+
+    for key in noise_ops:
+        spec = noise.get(key, {})
+        if isinstance(spec, dict) and _to_bool(spec.get("enabled", False), False):
+            candidates.append(("noise", key))
+
+    for key in advanced_preview_supported:
+        spec = advanced.get(key, {})
+        if isinstance(spec, dict) and _to_bool(spec.get("enabled", False), False):
+            candidates.append(("advanced", key))
+
+    if not candidates:
+        preview_output.parent.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(preview_output), img)
+        return {
+            "seed": seed,
+            "preview_image": str(preview_image),
+            "preview_output": str(preview_output),
+            "applied_steps": ["no_enabled_preview_transform"],
+        }
+
+    selected = None
+    if preview_op:
+        normalized = preview_op.strip().lower()
+        for c in candidates:
+            if c[1] == normalized:
+                selected = c
+                break
+    group, op = selected if selected is not None else rng.choice(candidates)
+
+    if group == "det_geo":
+        h = None
+        for key, mat_fn in deterministic_geo:
+            if key == op:
+                h = mat_fn()
+                break
+        if h is not None:
+            img = _warp(img, h)
+            objs = _transform_objects(objs, h)
+            applied_steps.append(op)
+    elif group == "rand_geo":
+        if op == "random_crop":
+            single_cfg = {"geometry": {"random_crop": dict(geo.get("random_crop", {}))}}
+            spec = single_cfg["geometry"]["random_crop"]
+            spec["enabled"] = True
+            spec["prob"] = 1.0
+            img, objs = _apply_random_crop(img, objs, single_cfg, rng)
+            applied_steps.append(op)
+        else:
+            single_cfg = {"geometry": {op: dict(geo.get(op, {}))}}
+            spec = single_cfg["geometry"][op]
+            spec["enabled"] = True
+            spec["prob"] = 1.0
+            h_rand = _build_random_h(single_cfg, rng)
+            if not np.allclose(h_rand, _identity_h()):
+                img = _warp(img, h_rand)
+                objs = _transform_objects(objs, h_rand)
+            applied_steps.append(op)
+    elif group == "color":
+        single_cfg = {"color": {op: dict(color.get(op, {}))}, "noise": {}}
+        spec = single_cfg["color"][op]
+        spec["enabled"] = True
+        spec["prob"] = 1.0
+        img = _color_noise_ops(img, single_cfg, rng)
+        applied_steps.append(op)
+    elif group == "noise":
+        single_cfg = {"color": {}, "noise": {op: dict(noise.get(op, {}))}}
+        spec = single_cfg["noise"][op]
+        spec["enabled"] = True
+        spec["prob"] = 1.0
+        img = _color_noise_ops(img, single_cfg, rng)
+        applied_steps.append(op)
+    elif group == "advanced":
+        single_cfg = {"advanced": {op: dict(advanced.get(op, {}))}}
+        spec = single_cfg["advanced"][op]
+        spec["enabled"] = True
+        spec["prob"] = 1.0
+        img = _apply_cutout_erasing(img, single_cfg, rng)
+        applied_steps.append(op)
+
+    preview_output.parent.mkdir(parents=True, exist_ok=True)
+    cv2.imwrite(str(preview_output), img)
+
+    return {
+        "seed": seed,
+        "preview_image": str(preview_image),
+        "preview_output": str(preview_output),
+        "applied_steps": applied_steps,
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     argv = argv if argv is not None else os.sys.argv[1:]
     args = parse_args(argv)
+
+    if args.preview_image and args.preview_output:
+        config_path = Path(args.config) if args.config else Path("augmentation_config.yaml")
+        summary = run_preview(
+            preview_image=Path(args.preview_image),
+            preview_output=Path(args.preview_output),
+            config_path=config_path,
+            seed_override=args.seed,
+            preview_op=args.preview_op,
+        )
+        if args.preview_summary:
+            Path(args.preview_summary).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+        LOG.info("Preview completed. Output=%s", summary.get("preview_output"))
+        return 0
+
+    if not args.dataset_root:
+        LOG.error("--dataset-root is required for dataset augmentation mode")
+        return 2
 
     dataset_root = Path(args.dataset_root)
     config_path = Path(args.config) if args.config else dataset_root / "augmentation_config.yaml"
