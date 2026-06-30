@@ -1441,17 +1441,21 @@ namespace ArcGisProAppYolo.DockPanes
                 }
 
                 var reportPath = Path.Combine(experimentFolder, "dataset_report.txt");
-                File.WriteAllText(reportPath, BuildDatasetReport(experimentName, orthoFolder, experimentFolder, hasAugmentation), Encoding.UTF8);
-                AppendProgressLine("INFO: dataset_report.txt generated.");
 
+                Dictionary<string, SplitAnnotationStats>? baseSplitStats = null;
                 if (hasAugmentation)
                 {
+                    baseSplitStats = CaptureSplitAnnotationStats(experimentFolder);
+
                     var hypPath = Path.Combine(experimentFolder, "hyp.yaml");
                     File.WriteAllText(hypPath, BuildHypYaml(), Encoding.UTF8);
                     AppendProgressLine("INFO: hyp.yaml generated.");
 
                     await RunAugmentationPipelineAsync(experimentFolder);
                 }
+
+                File.WriteAllText(reportPath, BuildDatasetReport(experimentName, orthoFolder, experimentFolder, hasAugmentation, baseSplitStats), Encoding.UTF8);
+                AppendProgressLine("INFO: dataset_report.txt generated.");
 
                 if (EstimatedTotalAfterAugmentation > 100000)
                     AppendProgressLine("WARN: Estimated dataset size exceeds 100,000 images.");
@@ -1627,6 +1631,15 @@ namespace ArcGisProAppYolo.DockPanes
                 var stdout = new StringBuilder();
                 var stderr = new StringBuilder();
                 var args = $"--dataset-root \"{experimentFolder}\" --config \"{Path.Combine(experimentFolder, "augmentation_config.yaml")}\" --max-per-image {Math.Max(1, DatasetMultiplier - 1)}";
+                args += $" --post-background-limit {Math.Max(0, BackgroundLimit)}";
+                if (BackgroundLimitIsPercent)
+                    args += " --post-background-limit-is-percent";
+                if (EnableClassBalancing)
+                    args += " --post-class-balance";
+                var balanceMethod = (SelectedBalanceMethod ?? "Median").Trim().ToLowerInvariant();
+                if (string.IsNullOrWhiteSpace(balanceMethod))
+                    balanceMethod = "median";
+                args += $" --post-balance-method \"{balanceMethod}\"";
                 if (ApplyToVal)
                     args += " --apply-to-val";
                 if (ApplyToTest)
@@ -1962,7 +1975,12 @@ namespace ArcGisProAppYolo.DockPanes
                 .Replace(" ", "_");
         }
 
-        private string BuildDatasetReport(string experimentName, string orthoFolder, string experimentFolder, bool hasAugmentation)
+        private string BuildDatasetReport(
+            string experimentName,
+            string orthoFolder,
+            string experimentFolder,
+            bool hasAugmentation,
+            IReadOnlyDictionary<string, SplitAnnotationStats>? baseSplitStats)
         {
             var sb = new StringBuilder();
             sb.AppendLine("Dataset Report");
@@ -2003,11 +2021,52 @@ namespace ArcGisProAppYolo.DockPanes
                 sb.AppendLine($"- {aug.Name}: range=[{aug.ValueMin:0.###}..{aug.ValueMax:0.###}], prob={aug.Probability:0.###}");
             }
 
-            sb.AppendLine();
-            sb.AppendLine("Per-split annotation statistics:");
-            foreach (var split in new[] { "train", "valid", "test" })
+            if (hasAugmentation && baseSplitStats != null)
             {
-                var stats = AnalyzeSplitAnnotations(experimentFolder, split);
+                sb.AppendLine();
+                sb.AppendLine("Per-split annotation statistics (Base / before augmentation):");
+                AppendSplitAnnotationStatistics(sb, new[] { "train", "valid", "test" }, split =>
+                {
+                    if (baseSplitStats.TryGetValue(split, out var stats))
+                        return stats;
+                    return new SplitAnnotationStats();
+                });
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("Per-split annotation statistics (Final / after augmentation):");
+            AppendSplitAnnotationStatistics(sb, new[] { "train", "valid", "test" }, split => AnalyzeSplitAnnotations(experimentFolder, split));
+
+            sb.AppendLine();
+            sb.AppendLine("Warnings:");
+            if (!string.IsNullOrWhiteSpace(ValidationWarning))
+                sb.AppendLine($"- {ValidationWarning}");
+            if (!string.IsNullOrWhiteSpace(SplitWarning))
+                sb.AppendLine($"- {SplitWarning}");
+            if (EstimatedTotalAfterAugmentation > 100000)
+                sb.AppendLine("- Estimated dataset size exceeds 100,000 images.");
+            if (TrainPercent < 50)
+                sb.AppendLine("- Train split is below 50%.");
+
+            return sb.ToString();
+        }
+
+        private static Dictionary<string, SplitAnnotationStats> CaptureSplitAnnotationStats(string experimentFolder)
+        {
+            var snapshot = new Dictionary<string, SplitAnnotationStats>(StringComparer.OrdinalIgnoreCase);
+            foreach (var split in new[] { "train", "valid", "test" })
+                snapshot[split] = AnalyzeSplitAnnotations(experimentFolder, split);
+            return snapshot;
+        }
+
+        private static void AppendSplitAnnotationStatistics(
+            StringBuilder sb,
+            IEnumerable<string> splitNames,
+            Func<string, SplitAnnotationStats> statsResolver)
+        {
+            foreach (var split in splitNames)
+            {
+                var stats = statsResolver(split);
                 if (!stats.Exists)
                 {
                     sb.AppendLine($"- {split}: not found");
@@ -2036,19 +2095,6 @@ namespace ArcGisProAppYolo.DockPanes
                     }
                 }
             }
-
-            sb.AppendLine();
-            sb.AppendLine("Warnings:");
-            if (!string.IsNullOrWhiteSpace(ValidationWarning))
-                sb.AppendLine($"- {ValidationWarning}");
-            if (!string.IsNullOrWhiteSpace(SplitWarning))
-                sb.AppendLine($"- {SplitWarning}");
-            if (EstimatedTotalAfterAugmentation > 100000)
-                sb.AppendLine("- Estimated dataset size exceeds 100,000 images.");
-            if (TrainPercent < 50)
-                sb.AppendLine("- Train split is below 50%.");
-
-            return sb.ToString();
         }
 
         private sealed class SplitAnnotationStats

@@ -82,11 +82,20 @@ def _split_trailing_number(value: str) -> tuple[str, int] | None:
 
 def _build_grid_aliases(grid: dict[str, tuple[object, float, float, float, float]]) -> dict[str, tuple[object, float, float, float, float]]:
     aliases: dict[str, tuple[object, float, float, float, float]] = {}
+
+    def add_alias(alias_key: str, row: tuple[object, float, float, float, float]) -> None:
+        if not alias_key:
+            return
+        # Никогда не перезаписываем уже существующий alias,
+        # чтобы не сдвигать соответствие tile -> geometry.
+        if alias_key not in aliases:
+            aliases[alias_key] = row
+
     for tile_name, row in grid.items():
         key = tile_name.strip().lower()
         if not key:
             continue
-        aliases[key] = row
+        add_alias(key, row)
 
         split = _split_trailing_number(key)
         if split is None:
@@ -94,11 +103,13 @@ def _build_grid_aliases(grid: dict[str, tuple[object, float, float, float, float
         prefix, number = split
 
         compact_prefix = prefix[:-1] if prefix.endswith("_") else prefix
-        aliases[f"{compact_prefix}{number}"] = row
+        add_alias(f"{compact_prefix}{number}", row)
 
         if number > 0:
-            aliases[f"{prefix}{number - 1}"] = row
-            aliases[f"{compact_prefix}{number - 1}"] = row
+            # Fallback для редких расхождений нумерации 1-based/0-based.
+            # Добавляем только если ключ ещё пуст, чтобы не ломать точные матчи.
+            add_alias(f"{prefix}{number - 1}", row)
+            add_alias(f"{compact_prefix}{number - 1}", row)
 
     return aliases
 
@@ -270,19 +281,65 @@ def _build_tile_infos(tiles_folder: Path, images: list[Path]) -> list[TileInfo]:
 
     grid = _load_grid(grid_fc)
     aliases = _build_grid_aliases(grid)
+
+    spatial_ref = None
+    try:
+        spatial_ref = arcpy.Describe(str(grid_fc)).spatialReference
+    except Exception:
+        spatial_ref = None
+
     infos: list[TileInfo] = []
+    by_extent = 0
+    by_alias = 0
     for img in images:
+        extent_based = None
+        try:
+            desc = arcpy.Describe(str(img))
+            ext = getattr(desc, "extent", None)
+            if ext is not None:
+                poly = arcpy.Polygon(
+                    arcpy.Array(
+                        [
+                            arcpy.Point(float(ext.XMin), float(ext.YMin)),
+                            arcpy.Point(float(ext.XMax), float(ext.YMin)),
+                            arcpy.Point(float(ext.XMax), float(ext.YMax)),
+                            arcpy.Point(float(ext.XMin), float(ext.YMax)),
+                            arcpy.Point(float(ext.XMin), float(ext.YMin)),
+                        ]
+                    ),
+                    spatial_ref,
+                )
+                extent_based = TileInfo(
+                    name=img.stem,
+                    image_path=img,
+                    geom=poly,
+                    xmin=float(ext.XMin),
+                    ymin=float(ext.YMin),
+                    xmax=float(ext.XMax),
+                    ymax=float(ext.YMax),
+                )
+        except Exception:
+            extent_based = None
+
+        if extent_based is not None:
+            infos.append(extent_based)
+            by_extent += 1
+            continue
+
         tile_name = img.stem
         row = aliases.get(tile_name.strip().lower())
         if row is None:
             continue
         geom, xmin, ymin, xmax, ymax = row
         infos.append(TileInfo(name=tile_name, image_path=img, geom=geom, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax))
+        by_alias += 1
 
     if not infos:
         sample_images = [p.stem for p in images[:5]]
         sample_grid = list(grid.keys())[:5]
         LOG.error("Tile-name match failed. image stems sample=%s grid TileName sample=%s", sample_images, sample_grid)
+    else:
+        LOG.info("TileInfo mapping: total=%s by_extent=%s by_alias=%s", len(infos), by_extent, by_alias)
 
     return infos
 
@@ -372,8 +429,8 @@ def _draw_debug_annotations(
         for px, py in pts:
             if not (math.isfinite(px) and math.isfinite(py)):
                 continue
-            x = int(max(0, min(w - 1, round(px * w))))
-            y = int(max(0, min(h - 1, round(py * h))))
+            x = int(max(0, min(w - 1, round(px * (w - 1)))))
+            y = int(max(0, min(h - 1, round(py * (h - 1)))))
             pix.append((x, y))
         if len(pix) < 2:
             continue

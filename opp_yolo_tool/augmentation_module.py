@@ -49,6 +49,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--preview-output", required=False)
     parser.add_argument("--preview-summary", required=False)
     parser.add_argument("--preview-op", required=False)
+    parser.add_argument("--post-background-limit", type=int, default=-1)
+    parser.add_argument("--post-background-limit-is-percent", action="store_true")
+    parser.add_argument("--post-class-balance", action="store_true")
+    parser.add_argument("--post-balance-method", required=False, default="median")
     return parser.parse_args(argv)
 
 
@@ -561,15 +565,15 @@ def _draw_debug_annotations(img: np.ndarray, objs: list[YoloObject]) -> np.ndarr
         for px, py in pts:
             if not (math.isfinite(px) and math.isfinite(py)):
                 continue
-            ix = int(max(0, min(w - 1, round(px * w))))
-            iy = int(max(0, min(h - 1, round(py * h))))
+            ix = int(max(0, min(w - 1, round(px * (w - 1)))))
+            iy = int(max(0, min(h - 1, round(py * (h - 1)))))
             pix.append((ix, iy))
 
         if obj.source_kind == "bbox":
-            x1 = int(max(0, min(w - 1, round(x1n * w))))
-            y1 = int(max(0, min(h - 1, round(y1n * h))))
-            x2 = int(max(0, min(w - 1, round(x2n * w))))
-            y2 = int(max(0, min(h - 1, round(y2n * h))))
+            x1 = int(max(0, min(w - 1, round(x1n * (w - 1)))))
+            y1 = int(max(0, min(h - 1, round(y1n * (h - 1)))))
+            x2 = int(max(0, min(w - 1, round(x2n * (w - 1)))))
+            y2 = int(max(0, min(h - 1, round(y2n * (h - 1)))))
             if x2 <= x1 or y2 <= y1:
                 continue
             cv2.rectangle(out, (x1, y1), (x2, y2), (0, 220, 0), 1)
@@ -791,6 +795,255 @@ def _process_split(
     return stats
 
 
+def _safe_unlink(path: Path) -> bool:
+    try:
+        if path.exists():
+            path.unlink()
+            return True
+    except Exception as ex:
+        LOG.warning("Failed to delete file %s: %s", path, ex)
+    return False
+
+
+def _extract_label_classes(label_path: Path) -> tuple[bool, list[int]]:
+    if not label_path.exists():
+        return True, []
+
+    classes: list[int] = []
+    for raw in label_path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        parts = line.split()
+        if not parts:
+            continue
+        try:
+            cls_id = int(float(parts[0]))
+            classes.append(cls_id)
+        except Exception:
+            continue
+    return len(classes) == 0, classes
+
+
+def _enumerate_split_samples(split_dir: Path) -> list[dict]:
+    images_dir = split_dir / "images"
+    labels_dir = split_dir / "labels"
+    if not images_dir.exists() or not labels_dir.exists():
+        return []
+
+    exts = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"}
+    samples: list[dict] = []
+    for image_path in sorted(images_dir.iterdir()):
+        if image_path.suffix.lower() not in exts:
+            continue
+
+        label_path = labels_dir / f"{image_path.stem}.txt"
+        is_background, classes = _extract_label_classes(label_path)
+        samples.append(
+            {
+                "image": image_path,
+                "label": label_path,
+                "is_background": is_background,
+                "classes": classes,
+            }
+        )
+    return samples
+
+
+def _limit_background_samples(
+    split_dir: Path,
+    rng: random.Random,
+    limit: int,
+    is_percent: bool,
+) -> dict:
+    samples = _enumerate_split_samples(split_dir)
+    if not samples:
+        return {
+            "split": split_dir.name,
+            "applied": False,
+            "reason": "split_not_found_or_empty",
+            "before_background": 0,
+            "after_background": 0,
+            "removed": 0,
+            "allowed": 0,
+        }
+
+    background = [s for s in samples if s["is_background"]]
+    objects_count = len(samples) - len(background)
+    before_bg = len(background)
+
+    if before_bg <= 0 or limit < 0:
+        return {
+            "split": split_dir.name,
+            "applied": False,
+            "reason": "disabled_or_no_background",
+            "before_background": before_bg,
+            "after_background": before_bg,
+            "removed": 0,
+            "allowed": before_bg,
+        }
+
+    if is_percent:
+        pct = _clamp(limit / 100.0, 0.0, 1.0)
+        if pct <= 0.0:
+            allowed = 0
+        elif pct >= 1.0:
+            allowed = before_bg
+        else:
+            # Ограничение доли background в финальном сплите:
+            # background / (objects + background) <= pct
+            # => background <= objects * pct / (1 - pct)
+            allowed = int(math.floor(objects_count * pct / (1.0 - pct)))
+    else:
+        allowed = max(0, limit)
+    allowed = max(0, allowed)
+
+    if before_bg <= allowed:
+        return {
+            "split": split_dir.name,
+            "applied": True,
+            "reason": "within_limit",
+            "before_background": before_bg,
+            "after_background": before_bg,
+            "removed": 0,
+            "allowed": allowed,
+            "objects": objects_count,
+        }
+
+    rng.shuffle(background)
+    to_remove = background[allowed:]
+    removed = 0
+    for sample in to_remove:
+        deleted_img = _safe_unlink(sample["image"])
+        deleted_lbl = _safe_unlink(sample["label"])
+        if deleted_img or deleted_lbl:
+            removed += 1
+
+    after_bg = max(0, before_bg - removed)
+    LOG.info(
+        "Post-balance background limit split=%s before=%s allowed=%s removed=%s after=%s",
+        split_dir.name,
+        before_bg,
+        allowed,
+        removed,
+        after_bg,
+    )
+
+    return {
+        "split": split_dir.name,
+        "applied": True,
+        "reason": "trimmed" if removed > 0 else "within_limit",
+        "before_background": before_bg,
+        "after_background": after_bg,
+        "removed": removed,
+        "allowed": allowed,
+        "objects": objects_count,
+    }
+
+
+def _resolve_balance_target(counts: list[int], method: str) -> int:
+    if not counts:
+        return 0
+    m = (method or "median").strip().lower()
+    if m == "minimum":
+        return int(min(counts))
+    if m == "average":
+        return int(round(sum(counts) / float(len(counts))))
+    ordered = sorted(counts)
+    n = len(ordered)
+    mid = n // 2
+    if n % 2 == 1:
+        return int(ordered[mid])
+    return int(round((ordered[mid - 1] + ordered[mid]) / 2.0))
+
+
+def _build_class_index(samples: list[dict]) -> dict[int, list[dict]]:
+    per_class: dict[int, list[dict]] = {}
+    for sample in samples:
+        if sample["is_background"]:
+            continue
+        uniq = sorted(set(int(c) for c in sample["classes"]))
+        for cls_id in uniq:
+            per_class.setdefault(cls_id, []).append(sample)
+    return per_class
+
+
+def _downsample_train_by_class(split_dir: Path, rng: random.Random, method: str) -> dict:
+    samples = _enumerate_split_samples(split_dir)
+    if not samples:
+        return {
+            "split": split_dir.name,
+            "applied": False,
+            "reason": "split_not_found_or_empty",
+            "method": (method or "median").strip().lower(),
+            "target": 0,
+            "before": {},
+            "after": {},
+            "removed": 0,
+        }
+
+    class_index = _build_class_index(samples)
+    before = {int(k): len(v) for k, v in class_index.items()}
+    if len(before) <= 1:
+        return {
+            "split": split_dir.name,
+            "applied": False,
+            "reason": "single_or_no_class",
+            "method": (method or "median").strip().lower(),
+            "target": next(iter(before.values()), 0),
+            "before": before,
+            "after": before,
+            "removed": 0,
+        }
+
+    target = _resolve_balance_target(list(before.values()), method)
+    target = max(1, int(target))
+
+    remove_candidates: set[str] = set()
+    for cls_id, cls_samples in class_index.items():
+        if len(cls_samples) <= target:
+            continue
+        shuffled = list(cls_samples)
+        rng.shuffle(shuffled)
+        for sample in shuffled[target:]:
+            key = str(sample["image"])
+            remove_candidates.add(key)
+
+    removed = 0
+    for sample in samples:
+        key = str(sample["image"])
+        if key not in remove_candidates:
+            continue
+        deleted_img = _safe_unlink(sample["image"])
+        deleted_lbl = _safe_unlink(sample["label"])
+        if deleted_img or deleted_lbl:
+            removed += 1
+
+    after_samples = _enumerate_split_samples(split_dir)
+    after_index = _build_class_index(after_samples)
+    after = {int(k): len(v) for k, v in after_index.items()}
+
+    LOG.info(
+        "Post-balance class downsample split=%s method=%s target=%s removed=%s before=%s after=%s",
+        split_dir.name,
+        (method or "median").strip().lower(),
+        target,
+        removed,
+        before,
+        after,
+    )
+
+    return {
+        "split": split_dir.name,
+        "applied": True,
+        "reason": "balanced",
+        "method": (method or "median").strip().lower(),
+        "target": target,
+        "before": before,
+        "after": after,
+        "removed": removed,
+    }
+
 def _is_enabled_spec(spec) -> bool:
     if isinstance(spec, bool):
         return bool(spec)
@@ -835,6 +1088,10 @@ def run(
     max_per_image: int,
     debug_enabled: bool,
     debug_dir: Path,
+    post_background_limit: int,
+    post_background_limit_is_percent: bool,
+    post_class_balance: bool,
+    post_balance_method: str,
 ) -> dict:
     if cv2 is None:
         raise RuntimeError("cv2 is required for augmentation_module.py")
@@ -861,8 +1118,16 @@ def run(
         "seed": seed,
         "config": str(config_path),
         "dataset_root": str(dataset_root),
+        "post_balance": {
+            "background_limit": int(post_background_limit),
+            "background_limit_is_percent": bool(post_background_limit_is_percent),
+            "class_balance": bool(post_class_balance),
+            "balance_method": (post_balance_method or "median").strip().lower(),
+        },
         "splits": [],
         "total_created": 0,
+        "post_background": [],
+        "post_class_balance": {},
     }
 
     if debug_enabled:
@@ -879,6 +1144,23 @@ def run(
         )
         result["splits"].append(stat)
         result["total_created"] += int(stat.get("created", 0))
+
+    for split_dir in splits:
+        bg_stat = _limit_background_samples(
+            split_dir=split_dir,
+            rng=rng,
+            limit=int(post_background_limit),
+            is_percent=bool(post_background_limit_is_percent),
+        )
+        result["post_background"].append(bg_stat)
+
+    if post_class_balance:
+        train_split = dataset_root / "train"
+        result["post_class_balance"] = _downsample_train_by_class(
+            split_dir=train_split,
+            rng=rng,
+            method=post_balance_method,
+        )
 
     return result
 
@@ -1086,6 +1368,10 @@ def main(argv: list[str] | None = None) -> int:
             max_per_image=max(0, int(args.max_per_image)),
             debug_enabled=debug_enabled,
             debug_dir=debug_dir,
+            post_background_limit=int(args.post_background_limit),
+            post_background_limit_is_percent=bool(args.post_background_limit_is_percent),
+            post_class_balance=bool(args.post_class_balance),
+            post_balance_method=(args.post_balance_method or "median"),
         )
 
         summary_path = dataset_root / "augmentation_run_summary.json"
