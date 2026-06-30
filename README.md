@@ -76,10 +76,50 @@ ArcGisProAppYolo/
 │   ├── models.py                    # Определение моделей
 │   ├── utils.py                     # Вспомогательные функции
 │   ├── predict_module.py            # YOLO детекция
-│   └── tile_generator.py            # Генерация тайлов (arcpy)
+│   ├── tile_generator.py            # Генерация тайлов (arcpy)
+│   ├── create_dataset_module.py     # Формирование train/valid/test + label .txt
+│   └── augmentation_module.py       # Аугментация изображений и аннотаций
 │
 └── 📂 Images/                        # Иконки Add-in
 ```
+
+### 📦 Структура результатов Create Dataset
+
+```
+OrthoMapping/<OrthoName>/DataSet/<experiment_name>/
+├── train/
+│   ├── images/
+│   └── labels/
+├── valid/
+│   ├── images/
+│   └── labels/
+├── test/
+│   ├── images/
+│   └── labels/
+├── debug/                              # при включенном DebugMode
+│   ├── train/
+│   ├── valid/
+│   └── test/
+├── data.yaml
+├── hyp.yaml
+├── augmentation_config.yaml
+├── dataset_report.txt
+├── dataset_build_summary.json
+├── augmentation_run_summary.json
+├── create_dataset_stdout.log
+├── create_dataset_stderr.log
+├── augmentation_stdout.log
+└── augmentation_stderr.log
+```
+
+### 🧩 Модуль `augmentation_module.py`
+
+Модуль выполняет аугментацию уже сформированного YOLO-датасета (`train/valid/test`):
+
+- детерминированные преобразования (`rot90`, `rot180`, `rot270`, `fliph`, `flipv`, `fliph_rot90`, `fliph_rot270`);
+- случайные геометрические, цветовые, шумовые и advanced-аугментации (`mosaic`, `mixup`, `copy-paste`, `cutout`, `erasing`);
+- синхронное обновление аннотаций `.txt` для каждого созданного изображения;
+- debug-визуализация аннотаций на аугментированных вариантах (если включен `--debug`).
 
 ---
 
@@ -110,6 +150,31 @@ conda install ultralytics
 # Установить SAHI для sliced inference
 conda install conda-forge::sahi
 
+```
+
+### Создание датасета (ArcGIS Pro Python, требуется `arcpy`)
+
+```bash
+python opp_yolo_tool/create_dataset_module.py \
+  --tiles-folder "C:\MyProject\OrthoMapping\Ortho_2024_01\Tiles\640px" \
+  --dataset-root "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001" \
+  --train 70 --val 20 --test 10 \
+  --seed 12345 \
+  --layers "buildings_train|roads_train" \
+  --dataset-type "Segmentation" \
+  --aprx "C:\MyProject\MyProject.aprx" \
+  --debug --debug-dir "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001\debug"
+```
+
+### Аугментация датасета
+
+```bash
+python opp_yolo_tool/augmentation_module.py \
+  --dataset-root "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001" \
+  --config "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001\augmentation_config.yaml" \
+  --max-per-image 4 \
+  --apply-to-val \
+  --debug --debug-dir "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001\debug"
 ```
 
 📚 **Документация по Python в ArcGIS Pro:**
