@@ -18,6 +18,8 @@
 - 🤖 **Запуска детекции объектов** с использованием YOLO + SAHI (sliced inference + NMS)
 - 📊 **Автоматического импорта результатов** (точки, маски, bounding boxes, OBB) в виде shapefiles
 - 🗺️ **Интеграции результатов** в структуру проекта ArcGIS Pro
+- 🧪 **Создания обучающего датасета YOLO** (train/valid/test) с поддержкой Detection / Segmentation / OBB
+- 🔁 **Аугментации датасета** с пост-обработкой финального набора (ограничение background и балансировка классов)
 
 ### 🎯 Цель проекта
 Упростить workflow детекции объектов на ортофотопланах для GIS-специалистов, позволяя выполнять весь процесс — от нарезки тайлов до визуализации результатов — внутри одной среды ArcGIS Pro.
@@ -121,6 +123,32 @@ OrthoMapping/<OrthoName>/DataSet/<experiment_name>/
 - синхронное обновление аннотаций `.txt` для каждого созданного изображения;
 - debug-визуализация аннотаций на аугментированных вариантах (если включен `--debug`).
 
+### 🧩 Модуль `create_dataset_module.py`
+
+Модуль формирует базовый датасет из тайлов и выбранных слоёв аннотаций:
+
+- читает `Tile_Grid_Pixels.shp` и геометрию тайлов;
+- формирует split `train/valid/test` по заданным процентам и seed;
+- поддерживает форматы разметки:
+  - `Detection` (YOLO bbox),
+  - `Segmentation` (YOLO polygon),
+  - `OBB` (YOLO oriented box, 4 точки);
+- фильтрует почти пустые (black/white) тайлы без аннотаций;
+- создаёт debug-рендеры аннотаций при включённом debug-режиме;
+- пишет `dataset_build_summary.json` с итоговой статистикой.
+
+### 🧠 Как работает новый pipeline Create Dataset
+
+1. Генерация/переиспользование тайлов из панели ArcGIS Pro.
+2. Сборка базового датасета через `create_dataset_module.py`.
+3. Аугментация через `augmentation_module.py`.
+4. Пост-обработка финального train (после аугментации):
+   - ограничение доли/количества background,
+   - downsample классов по методу `Median / Average / Minimum`.
+5. Формирование `dataset_report.txt` со статистикой:
+   - `Base / before augmentation`,
+   - `Final / after augmentation`.
+
 ---
 
 ## 🚀 Установка и запуск
@@ -173,6 +201,10 @@ python opp_yolo_tool/augmentation_module.py \
   --dataset-root "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001" \
   --config "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001\augmentation_config.yaml" \
   --max-per-image 4 \
+  --post-background-limit 20 \
+  --post-background-limit-is-percent \
+  --post-class-balance \
+  --post-balance-method median \
   --apply-to-val \
   --debug --debug-dir "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001\debug"
 ```
@@ -213,11 +245,11 @@ Remove-Item "$env:LOCALAPPDATA\ESRI\ArcGISPro\AssemblyCache\{a79ff6b9-f9a2-4dc3-
 ---
 
 ## 🧩 Добавление в ArcGIS Pro
-Скачайте архив на странице релиза [ArcGisProAppYolo.1.1.0-windows.rar](https://github.com/gdenis82/ArcGisPro_Yolo_Tools/releases)
+Скачайте архив на странице релиза [ArcGisProAppYolo.1.2.0-windows.rar](https://github.com/gdenis82/ArcGisPro_Yolo_Tools/releases)
 
 ```text
-Распакуйте архив ArcGisProAppYolo.1.1.0-windows.rar
-Дважды кликните по файлу ArcGisProAppYolo.esriAddinX (находится в папке ArcGisProAppYolo.1.0.0-windows)
+Распакуйте архив ArcGisProAppYolo.1.2.0-windows.rar
+Дважды кликните по файлу ArcGisProAppYolo.esriAddinX (находится в папке ArcGisProAppYolo.1.2.0-windows)
 Нажмите Install Add-In в окне установщика
 Перезапустите ArcGIS Pro
 Инструмент появится на ленте в соответствующей вкладке
