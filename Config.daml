@@ -5,13 +5,12 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Users/omen_/AppData/Local/Programs/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
 
-  <AddInInfo id="{a79ff6b9-f9a2-4dc3-8cdb-820811bb9ad8}" version="1.2.0" desktopVersion="3.7.1901" product="ArcGISPro">
+  <AddInInfo id="{a79ff6b9-f9a2-4dc3-8cdb-820811bb9ad8}" version="1.2.1" desktopVersion="3.7.1901" product="ArcGISPro">
     <Name>ArcGisProAppYolo</Name>   
     <Description>**ArcGisProAppYolo** — это надстройка (Add-in) для **ArcGIS Pro 3.7**, которая интегрирует **YOLO (You Only Look Once)** object detection непосредственно в рабочую среду ArcGIS Pro.</Description>
     <Image>Images\YoloAddIn32.png</Image>
     <Author>Denis Gaev</Author>
-    <Company>NPWC</Company>
-    <Date>30.06.2026 20:00:01</Date>
+    <Date>07.07.2026 15:20:01</Date>
     <Subject>Framework</Subject>
     
     <!-- Note subject can be one or more of these topics:

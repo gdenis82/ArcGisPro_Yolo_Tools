@@ -1,19 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
       <xsd:complexType>
         <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
           <xsd:element name="data">
             <xsd:complexType>
               <xsd:sequence>
                 <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
                 <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
               </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
-              <xsd:attribute name="type" type="xsd:string" />
-              <xsd:attribute name="mimetype" type="xsd:string" />
-              <xsd:attribute name="xml:space" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
           </xsd:element>
           <xsd:element name="resheader">
@@ -40,183 +117,696 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
-  <!-- ===== Common ===== -->
-  <data name="Common_Run" xml:space="preserve"><value>Run</value></data>
-  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
-  <data name="Common_Browse" xml:space="preserve"><value>Browse...</value></data>
-  <data name="Common_Reset" xml:space="preserve"><value>Reset</value></data>
-  <data name="Common_Progress" xml:space="preserve"><value>Progress</value></data>
-  <data name="Common_RefreshTooltip" xml:space="preserve"><value>Refresh list.</value></data>
-  <data name="Common_OperationCancelledByUser" xml:space="preserve"><value>Operation cancelled by user.</value></data>
-  <data name="Common_OperationCancelled" xml:space="preserve"><value>Operation cancelled.</value></data>
-  <data name="Common_Preparing" xml:space="preserve"><value>Preparing...</value></data>
-  <data name="Common_Cancelling" xml:space="preserve"><value>Cancelling...</value></data>
-
-  <!-- ===== Yolo DockPane ===== -->
-  <data name="Yolo_OrthoSelection" xml:space="preserve"><value>Ortho Selection</value></data>
-  <data name="Yolo_SelectOrtho" xml:space="preserve"><value>Select Ortho:</value></data>
-  <data name="Yolo_SelectOrthoTooltip" xml:space="preserve"><value>Select an orthophoto for processing.</value></data>
-  <data name="Yolo_OrthoListTooltip" xml:space="preserve"><value>List of available project orthophotos.</value></data>
-  <data name="Yolo_RefreshOrthoTooltip" xml:space="preserve"><value>Refresh orthophoto list.</value></data>
-  <data name="Yolo_AvailableFormat" xml:space="preserve"><value>Available: {0} item(s)</value></data>
-  <data name="Yolo_ModelConfiguration" xml:space="preserve"><value>Model Configuration</value></data>
-  <data name="Yolo_BrowseModelTooltip" xml:space="preserve"><value>Select a model file (.pt/.onnx).</value></data>
-  <data name="Yolo_TileSettings" xml:space="preserve"><value>Tile Settings</value></data>
-  <data name="Yolo_TileSize" xml:space="preserve"><value>Tile Size:</value></data>
-  <data name="Yolo_TileSizeTooltip" xml:space="preserve"><value>Tile size in pixels.</value></data>
-  <data name="Yolo_TileSizeValueTooltip" xml:space="preserve"><value>Larger tiles consume more memory.</value></data>
-  <data name="Yolo_OverlapPercent" xml:space="preserve"><value>Overlap (%):</value></data>
-  <data name="Yolo_OverlapTooltip" xml:space="preserve"><value>Overlap between adjacent tiles in percent.</value></data>
-  <data name="Yolo_OverlapValueTooltip" xml:space="preserve"><value>More overlap reduces misses at tile borders.</value></data>
-  <data name="Yolo_DetectionSettings" xml:space="preserve"><value>Detection Settings</value></data>
-  <data name="Yolo_Confidence" xml:space="preserve"><value>Confidence:</value></data>
-  <data name="Yolo_ConfidenceTooltip" xml:space="preserve"><value>Model confidence threshold (0..1).</value></data>
-  <data name="Yolo_ConfidenceValueTooltip" xml:space="preserve"><value>Objects below threshold are discarded.</value></data>
-  <data name="Yolo_OutputPoints" xml:space="preserve"><value>Output Points</value></data>
-  <data name="Yolo_OutputPointsTooltip" xml:space="preserve"><value>Create a point layer for object centers.</value></data>
-  <data name="Yolo_OutputMasks" xml:space="preserve"><value>Output Masks</value></data>
-  <data name="Yolo_OutputMasksTooltip" xml:space="preserve"><value>Create a polygon mask layer.</value></data>
-  <data name="Yolo_OutputBoxes" xml:space="preserve"><value>Output Boxes</value></data>
-  <data name="Yolo_OutputBoxesTooltip" xml:space="preserve"><value>Create a bounding box layer.</value></data>
-  <data name="Yolo_OutputOBB" xml:space="preserve"><value>Output OBB</value></data>
-  <data name="Yolo_OutputOBBTooltip" xml:space="preserve"><value>Create an oriented bounding box layer.</value></data>
-  <data name="Yolo_UseSahi" xml:space="preserve"><value>Use SAHI slicing</value></data>
-  <data name="Yolo_UseSahiTooltip" xml:space="preserve"><value>Kept for compatibility; uses SAHI.</value></data>
-  <data name="Yolo_MaskMode" xml:space="preserve"><value>Mask Mode</value></data>
-  <data name="Yolo_MaskModeTooltip" xml:space="preserve"><value>How to form a mask when multiple contours exist.</value></data>
-  <data name="Yolo_MaskModeLargest" xml:space="preserve"><value>Largest</value></data>
-  <data name="Yolo_MaskModeLargestTooltip" xml:space="preserve"><value>Keep only the largest contour (1 mask = 1 object).</value></data>
-  <data name="Yolo_MaskModeUnion" xml:space="preserve"><value>Union</value></data>
-  <data name="Yolo_MaskModeUnionTooltip" xml:space="preserve"><value>Merge all contours into one geometry.</value></data>
-  <data name="Yolo_RunDetection" xml:space="preserve"><value>Run Detection</value></data>
-  <data name="Yolo_RunButtonTooltip" xml:space="preserve"><value>Start detection. During execution the button switches to Cancel.</value></data>
-  <data name="Yolo_ProgressTooltip" xml:space="preserve"><value>Full line-by-line execution log. You can select and copy.</value></data>
-
-  <!-- Yolo runtime messages -->
-  <data name="Yolo_ProjectOrOrthoNotSelected" xml:space="preserve"><value>Project or Ortho not selected.</value></data>
-  <data name="Yolo_OrthoImageNotFound" xml:space="preserve"><value>Ortho image not found in selected Ortho.</value></data>
-  <data name="Yolo_PreparingTilesFolder" xml:space="preserve"><value>Preparing Tiles folder...</value></data>
-  <data name="Yolo_TilesExistMessage" xml:space="preserve"><value>Tiles for size {0}px already exist. Use existing?
-
-Yes — use existing
-No — regenerate
-Cancel — abort operation</value></data>
-  <data name="Yolo_TilesExistTitle" xml:space="preserve"><value>Tiles already exist</value></data>
-  <data name="Yolo_GeneratingTiles" xml:space="preserve"><value>Generating tiles (this may take a while)...</value></data>
-  <data name="Yolo_UsingExistingTiles" xml:space="preserve"><value>Using existing tiles.</value></data>
-  <data name="Yolo_TilesCompleted" xml:space="preserve"><value>Tiles generation completed.</value></data>
-  <data name="Yolo_RunningPredictions" xml:space="preserve"><value>Running predictions...</value></data>
-  <data name="Yolo_ModelNotFound" xml:space="preserve"><value>Model file not specified or not found.</value></data>
-  <data name="Yolo_PredictionsCompleted" xml:space="preserve"><value>Predictions completed.</value></data>
-  <data name="Yolo_PredictionsFailed" xml:space="preserve"><value>Predictions failed (exit {0}). See logs.</value></data>
-  <data name="Yolo_PredictModuleNotFound" xml:space="preserve"><value>predict_module.py not found; skipping predictions.</value></data>
-  <data name="Yolo_TilesGenerationFailed" xml:space="preserve"><value>Tiles generation failed. See logs in Tiles folder.</value></data>
-  <data name="Yolo_FailedRecreateTilesFolder" xml:space="preserve"><value>Failed to recreate tiles folder: {0}</value></data>
-  <data name="Yolo_ErrorGeneric" xml:space="preserve"><value>Error: {0}</value></data>
-
-  <!-- ===== Dataset DockPane ===== -->
-  <data name="Dataset_OrthoSelection" xml:space="preserve"><value>Ortho Selection</value></data>
-  <data name="Dataset_OrthoTooltip" xml:space="preserve"><value>Select an orthophoto from the current ArcGIS Pro project.</value></data>
-  <data name="Dataset_RefreshOrthoTooltip" xml:space="preserve"><value>Refresh orthophoto list.</value></data>
-  <data name="Dataset_AvailableFormat" xml:space="preserve"><value>Available: {0}</value></data>
-  <data name="Dataset_AnnotationLayers" xml:space="preserve"><value>Annotation Layers</value></data>
-  <data name="Dataset_AnnotationLayersFilter" xml:space="preserve"><value>Only layers with 'train' in the name are shown.</value></data>
-  <data name="Dataset_AnnotationLayersFilterTooltip" xml:space="preserve"><value>Layer filter: name contains train.</value></data>
-  <data name="Dataset_RefreshAnnotationTooltip" xml:space="preserve"><value>Refresh list (only layers with train in name).</value></data>
-  <data name="Dataset_SlicingParameters" xml:space="preserve"><value>Slicing Parameters</value></data>
-  <data name="Dataset_TileSizePx" xml:space="preserve"><value>Tile Size (px):</value></data>
-  <data name="Dataset_TileSizeTooltip" xml:space="preserve"><value>Recommended range 64..2048.</value></data>
-  <data name="Dataset_Overlap" xml:space="preserve"><value>Overlap (0..0.9):</value></data>
-  <data name="Dataset_OverlapTooltip" xml:space="preserve"><value>For example 0.2 = 20%.</value></data>
-  <data name="Dataset_DatasetType" xml:space="preserve"><value>Dataset Type</value></data>
-  <data name="Dataset_DatasetTypeTooltip" xml:space="preserve"><value>Annotation format in Ultralytics YOLO style.</value></data>
-  <data name="Dataset_SplitHeader" xml:space="preserve"><value>Train / Val / Test Split</value></data>
-  <data name="Dataset_BackgroundHeader" xml:space="preserve"><value>Background / Class Balance / Debug</value></data>
-  <data name="Dataset_BackgroundLimit" xml:space="preserve"><value>Background limit:</value></data>
-  <data name="Dataset_Percent" xml:space="preserve"><value>Percent</value></data>
-  <data name="Dataset_EnableClassBalancing" xml:space="preserve"><value>Enable class balancing</value></data>
-  <data name="Dataset_EnableClassBalancingTooltip" xml:space="preserve"><value>Class balancing for Train/Val.</value></data>
-  <data name="Dataset_BalancingMethod" xml:space="preserve"><value>Balancing method:</value></data>
-  <data name="Dataset_DebugMode" xml:space="preserve"><value>Debug Mode</value></data>
-  <data name="Dataset_DebugModeTooltip" xml:space="preserve"><value>Save visualizations and additional debug artifacts.</value></data>
-  <data name="Dataset_DataAugmentation" xml:space="preserve"><value>Data Augmentation</value></data>
-  <data name="Dataset_Seed" xml:space="preserve"><value>Seed:</value></data>
-  <data name="Dataset_SeedTooltip" xml:space="preserve"><value>Fixed seed for reproducibility.</value></data>
-  <data name="Dataset_ApplyToVal" xml:space="preserve"><value>Apply to Val</value></data>
-  <data name="Dataset_ApplyToValTooltip" xml:space="preserve"><value>If enabled: augmentation is also applied to the validation split. Usually left off so metrics reflect quality on 'clean' data.</value></data>
-  <data name="Dataset_ApplyToTest" xml:space="preserve"><value>Apply to Test</value></data>
-  <data name="Dataset_ApplyToTestTooltip" xml:space="preserve"><value>If enabled: augmentation is also applied to the test split. Recommended to disable for objective final model testing.</value></data>
-  <data name="Dataset_TabGeometry" xml:space="preserve"><value>📐 Geometry</value></data>
-  <data name="Dataset_TabColor" xml:space="preserve"><value>🎨 Color</value></data>
-  <data name="Dataset_TabNoiseBlur" xml:space="preserve"><value>🌫️ Noise &amp; Blur</value></data>
-  <data name="Dataset_TabAdvanced" xml:space="preserve"><value>⚡ Advanced</value></data>
-  <data name="Dataset_TabPreview" xml:space="preserve"><value>👁️ Preview</value></data>
-  <data name="Dataset_TabPresets" xml:space="preserve"><value>💾 Presets</value></data>
-  <data name="Dataset_AugmentationEnableTooltip" xml:space="preserve"><value>Enable/disable augmentation.</value></data>
-  <data name="Dataset_RecommendationFormat" xml:space="preserve"><value>Recommendation: {0}</value></data>
-  <data name="Dataset_Range" xml:space="preserve"><value>Range:</value></data>
-  <data name="Dataset_RangeLowerTooltip" xml:space="preserve"><value>Lower bound of range.</value></data>
-  <data name="Dataset_DecrementLowerTooltip" xml:space="preserve"><value>Decrease lower threshold.</value></data>
-  <data name="Dataset_IncrementLowerTooltip" xml:space="preserve"><value>Increase lower threshold.</value></data>
-  <data name="Dataset_RangeUpperTooltip" xml:space="preserve"><value>Upper bound of range.</value></data>
-  <data name="Dataset_DecrementUpperTooltip" xml:space="preserve"><value>Decrease upper threshold.</value></data>
-  <data name="Dataset_IncrementUpperTooltip" xml:space="preserve"><value>Increase upper threshold.</value></data>
-  <data name="Dataset_Probability" xml:space="preserve"><value>Probability:</value></data>
-  <data name="Dataset_ProbabilityTooltip" xml:space="preserve"><value>Application probability (0..1).</value></data>
-  <data name="Dataset_DecrementProbTooltip" xml:space="preserve"><value>Decrease probability.</value></data>
-  <data name="Dataset_IncrementProbTooltip" xml:space="preserve"><value>Increase probability.</value></data>
-  <data name="Dataset_MinProbTooltip" xml:space="preserve"><value>Minimum allowed probability.</value></data>
-  <data name="Dataset_MaxProbTooltip" xml:space="preserve"><value>Maximum allowed probability.</value></data>
-  <data name="Dataset_ResetTooltip" xml:space="preserve"><value>Reset to default values.</value></data>
-  <data name="Dataset_TilesFolder" xml:space="preserve"><value>Tiles folder:</value></data>
-  <data name="Dataset_TilesFolderTooltip" xml:space="preserve"><value>Path to the tiles folder for preview.</value></data>
-  <data name="Dataset_BrowsePreviewTooltip" xml:space="preserve"><value>Select a tiles folder for preview.</value></data>
-  <data name="Dataset_ApplyNextTransform" xml:space="preserve"><value>Apply Next Transform</value></data>
-  <data name="Dataset_ApplyNextTransformTooltip" xml:space="preserve"><value>Apply the next transform (round-robin) to the current image.</value></data>
-  <data name="Dataset_ApplySelected" xml:space="preserve"><value>Apply selected:</value></data>
-  <data name="Dataset_ApplySelectedTooltip" xml:space="preserve"><value>Select an enabled transform to apply it to the current tile immediately.</value></data>
-  <data name="Dataset_ApplyingTransform" xml:space="preserve"><value>Applying transform...</value></data>
-  <data name="Dataset_CurrentTile" xml:space="preserve"><value>Current tile:</value></data>
-  <data name="Dataset_CurrentTileTooltip" xml:space="preserve"><value>Current tile file for preview.</value></data>
-  <data name="Dataset_PrevImageTooltip" xml:space="preserve"><value>Previous image</value></data>
-  <data name="Dataset_NextImageTooltip" xml:space="preserve"><value>Next image</value></data>
-  <data name="Dataset_PreviewInstructions" xml:space="preserve"><value>Select a tiles folder: the first image will load. Use ←/→ buttons to switch images. Press Apply Next Transform to apply the next enabled transform.</value></data>
-  <data name="Dataset_Applied" xml:space="preserve"><value>Applied:</value></data>
-  <data name="Dataset_BuiltInPresets" xml:space="preserve"><value>Built-in presets:</value></data>
-  <data name="Dataset_PresetsDescription" xml:space="preserve"><value>Preset — a ready-made set of enabled augmentations, their ranges and probabilities. Use as a starting point, then adjust for your dataset.</value></data>
-  <data name="Dataset_PresetNoneTooltip" xml:space="preserve"><value>Disable all augmentations and restore defaults.</value></data>
-  <data name="Dataset_PresetLightTooltip" xml:space="preserve"><value>Light and safe augmentations: minimal geometric/color changes.</value></data>
-  <data name="Dataset_PresetStandardTooltip" xml:space="preserve"><value>Balanced set for most detection/segmentation tasks.</value></data>
-  <data name="Dataset_PresetAggressiveTooltip" xml:space="preserve"><value>Maximum augmentations. Use carefully and check for quality degradation.</value></data>
-  <data name="Dataset_PresetOutdoorAerialTooltip" xml:space="preserve"><value>Set for outdoor/aerial scenes: shadows, fog, local contrast.</value></data>
-  <data name="Dataset_SavePreset" xml:space="preserve"><value>Save preset (.json)</value></data>
-  <data name="Dataset_SavePresetTooltip" xml:space="preserve"><value>Save current augmentation settings (including ranges and probabilities) to a JSON file for reuse.</value></data>
-  <data name="Dataset_LoadPreset" xml:space="preserve"><value>Load preset (.json)</value></data>
-  <data name="Dataset_LoadPresetTooltip" xml:space="preserve"><value>Load a previously saved JSON preset and apply it to the current panel.</value></data>
-  <data name="Dataset_ExportHyp" xml:space="preserve"><value>Export hyp.yaml</value></data>
-  <data name="Dataset_ExportHypTooltip" xml:space="preserve"><value>Export parameters in hyp.yaml format for Ultralytics YOLO (convenient for CLI training).</value></data>
-  <data name="Dataset_Summary" xml:space="preserve"><value>Summary</value></data>
-  <data name="Dataset_EstimatedSourceImages" xml:space="preserve"><value>Estimated source images:</value></data>
-  <data name="Dataset_DatasetMultiplierFormat" xml:space="preserve"><value>Dataset multiplier: ×{0}</value></data>
-  <data name="Dataset_EstimatedTotalFormat" xml:space="preserve"><value>Estimated total images: {0}</value></data>
-  <data name="Dataset_EstimatedTimeFormat" xml:space="preserve"><value>Estimated generation time: {0}</value></data>
-  <data name="Dataset_RunTooltip" xml:space="preserve"><value>Start dataset creation.</value></data>
-  <data name="Dataset_CreateDataset" xml:space="preserve"><value>Create Dataset</value></data>
-  <data name="Dataset_Running" xml:space="preserve"><value>Running...</value></data>
-
-  <!-- Dataset runtime messages -->
-  <data name="Dataset_TilesExistMessage" xml:space="preserve"><value>Tiles for size {0}px already exist. Use existing?
+  <data name="Common_Run" xml:space="preserve">
+    <value>Run</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Browse" xml:space="preserve">
+    <value>Browse...</value>
+  </data>
+  <data name="Common_Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Common_Progress" xml:space="preserve">
+    <value>Progress</value>
+  </data>
+  <data name="Common_RefreshTooltip" xml:space="preserve">
+    <value>Refresh list.</value>
+  </data>
+  <data name="Common_OperationCancelledByUser" xml:space="preserve">
+    <value>Operation cancelled by user.</value>
+  </data>
+  <data name="Common_OperationCancelled" xml:space="preserve">
+    <value>Operation cancelled.</value>
+  </data>
+  <data name="Common_Preparing" xml:space="preserve">
+    <value>Preparing...</value>
+  </data>
+  <data name="Common_Cancelling" xml:space="preserve">
+    <value>Cancelling...</value>
+  </data>
+  <data name="Yolo_OrthoSelection" xml:space="preserve">
+    <value>Ortho Selection</value>
+  </data>
+  <data name="Yolo_SelectOrtho" xml:space="preserve">
+    <value>Select Ortho:</value>
+  </data>
+  <data name="Yolo_SelectOrthoTooltip" xml:space="preserve">
+    <value>Select an orthophoto for processing.</value>
+  </data>
+  <data name="Yolo_OrthoListTooltip" xml:space="preserve">
+    <value>List of available project orthophotos.</value>
+  </data>
+  <data name="Yolo_RefreshOrthoTooltip" xml:space="preserve">
+    <value>Refresh orthophoto list.</value>
+  </data>
+  <data name="Yolo_AvailableFormat" xml:space="preserve">
+    <value>Available: {0} item(s)</value>
+  </data>
+  <data name="Yolo_ModelConfiguration" xml:space="preserve">
+    <value>Model Configuration</value>
+  </data>
+  <data name="Yolo_BrowseModelTooltip" xml:space="preserve">
+    <value>Select a model file (.pt/.onnx).</value>
+  </data>
+  <data name="Yolo_TileSettings" xml:space="preserve">
+    <value>Tile Settings</value>
+  </data>
+  <data name="Yolo_TileSize" xml:space="preserve">
+    <value>Tile Size:</value>
+  </data>
+  <data name="Yolo_TileSizeTooltip" xml:space="preserve">
+    <value>Tile size in pixels.</value>
+  </data>
+  <data name="Yolo_TileSizeValueTooltip" xml:space="preserve">
+    <value>Larger tiles consume more memory.</value>
+  </data>
+  <data name="Yolo_OverlapPercent" xml:space="preserve">
+    <value>Overlap (%):</value>
+  </data>
+  <data name="Yolo_OverlapTooltip" xml:space="preserve">
+    <value>Overlap between adjacent tiles in percent.</value>
+  </data>
+  <data name="Yolo_OverlapValueTooltip" xml:space="preserve">
+    <value>More overlap reduces misses at tile borders.</value>
+  </data>
+  <data name="Yolo_DetectionSettings" xml:space="preserve">
+    <value>Detection Settings</value>
+  </data>
+  <data name="Yolo_Confidence" xml:space="preserve">
+    <value>Confidence:</value>
+  </data>
+  <data name="Yolo_ConfidenceTooltip" xml:space="preserve">
+    <value>Model confidence threshold (0..1).</value>
+  </data>
+  <data name="Yolo_ConfidenceValueTooltip" xml:space="preserve">
+    <value>Objects below threshold are discarded.</value>
+  </data>
+  <data name="Yolo_OutputPoints" xml:space="preserve">
+    <value>Output Points</value>
+  </data>
+  <data name="Yolo_OutputPointsTooltip" xml:space="preserve">
+    <value>Create a point layer for object centers.</value>
+  </data>
+  <data name="Yolo_OutputMasks" xml:space="preserve">
+    <value>Output Masks</value>
+  </data>
+  <data name="Yolo_OutputMasksTooltip" xml:space="preserve">
+    <value>Create a polygon mask layer.</value>
+  </data>
+  <data name="Yolo_OutputBoxes" xml:space="preserve">
+    <value>Output Boxes</value>
+  </data>
+  <data name="Yolo_OutputBoxesTooltip" xml:space="preserve">
+    <value>Create a bounding box layer.</value>
+  </data>
+  <data name="Yolo_OutputOBB" xml:space="preserve">
+    <value>Output OBB</value>
+  </data>
+  <data name="Yolo_OutputOBBTooltip" xml:space="preserve">
+    <value>Create an oriented bounding box layer.</value>
+  </data>
+  <data name="Yolo_UseSahi" xml:space="preserve">
+    <value>Use SAHI slicing</value>
+  </data>
+  <data name="Yolo_UseSahiTooltip" xml:space="preserve">
+    <value>Kept for compatibility; uses SAHI.</value>
+  </data>
+  <data name="Yolo_MaskMode" xml:space="preserve">
+    <value>Mask Mode</value>
+  </data>
+  <data name="Yolo_MaskModeTooltip" xml:space="preserve">
+    <value>How to form a mask when multiple contours exist.</value>
+  </data>
+  <data name="Yolo_MaskModeLargest" xml:space="preserve">
+    <value>Largest</value>
+  </data>
+  <data name="Yolo_MaskModeLargestTooltip" xml:space="preserve">
+    <value>Keep only the largest contour (1 mask = 1 object).</value>
+  </data>
+  <data name="Yolo_MaskModeUnion" xml:space="preserve">
+    <value>Union</value>
+  </data>
+  <data name="Yolo_MaskModeUnionTooltip" xml:space="preserve">
+    <value>Merge all contours into one geometry.</value>
+  </data>
+  <data name="Yolo_RunDetection" xml:space="preserve">
+    <value>Run Detection</value>
+  </data>
+  <data name="Yolo_RunButtonTooltip" xml:space="preserve">
+    <value>Start detection. During execution the button switches to Cancel.</value>
+  </data>
+  <data name="Yolo_ProgressTooltip" xml:space="preserve">
+    <value>Full line-by-line execution log. You can select and copy.</value>
+  </data>
+  <data name="Yolo_ProjectOrOrthoNotSelected" xml:space="preserve">
+    <value>Project or Ortho not selected.</value>
+  </data>
+  <data name="Yolo_OrthoImageNotFound" xml:space="preserve">
+    <value>Ortho image not found in selected Ortho.</value>
+  </data>
+  <data name="Yolo_PreparingTilesFolder" xml:space="preserve">
+    <value>Preparing Tiles folder...</value>
+  </data>
+  <data name="Yolo_TilesExistMessage" xml:space="preserve">
+    <value>Tiles for size {0}px already exist. Use existing?
 
 Yes — use existing
 No — regenerate
-Cancel — abort operation</value></data>
-  <data name="Dataset_TilesExistTitle" xml:space="preserve"><value>Tiles already exist</value></data>
-  <data name="Dataset_OrthoNotFound" xml:space="preserve"><value>Source ortho image not found in Products/Orthos.</value></data>
+Cancel — abort operation</value>
+  </data>
+  <data name="Yolo_TilesExistTitle" xml:space="preserve">
+    <value>Tiles already exist</value>
+  </data>
+  <data name="Yolo_GeneratingTiles" xml:space="preserve">
+    <value>Generating tiles (this may take a while)...</value>
+  </data>
+  <data name="Yolo_UsingExistingTiles" xml:space="preserve">
+    <value>Using existing tiles.</value>
+  </data>
+  <data name="Yolo_TilesCompleted" xml:space="preserve">
+    <value>Tiles generation completed.</value>
+  </data>
+  <data name="Yolo_RunningPredictions" xml:space="preserve">
+    <value>Running predictions...</value>
+  </data>
+  <data name="Yolo_ModelNotFound" xml:space="preserve">
+    <value>Model file not specified or not found.</value>
+  </data>
+  <data name="Yolo_PredictionsCompleted" xml:space="preserve">
+    <value>Predictions completed.</value>
+  </data>
+  <data name="Yolo_PredictionsFailed" xml:space="preserve">
+    <value>Predictions failed (exit {0}). See logs.</value>
+  </data>
+  <data name="Yolo_PredictModuleNotFound" xml:space="preserve">
+    <value>predict_module.py not found; skipping predictions.</value>
+  </data>
+  <data name="Yolo_TilesGenerationFailed" xml:space="preserve">
+    <value>Tiles generation failed. See logs in Tiles folder.</value>
+  </data>
+  <data name="Yolo_FailedRecreateTilesFolder" xml:space="preserve">
+    <value>Failed to recreate tiles folder: {0}</value>
+  </data>
+  <data name="Yolo_ErrorGeneric" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="Dataset_OrthoSelection" xml:space="preserve">
+    <value>Ortho Selection</value>
+  </data>
+  <data name="Dataset_OrthoTooltip" xml:space="preserve">
+    <value>Select an orthophoto from the current ArcGIS Pro project.</value>
+  </data>
+  <data name="Dataset_RefreshOrthoTooltip" xml:space="preserve">
+    <value>Refresh orthophoto list.</value>
+  </data>
+  <data name="Dataset_AvailableFormat" xml:space="preserve">
+    <value>Available: {0}</value>
+  </data>
+  <data name="Dataset_AnnotationLayers" xml:space="preserve">
+    <value>Annotation Layers</value>
+  </data>
+  <data name="Dataset_AnnotationLayersFilter" xml:space="preserve">
+    <value>Only layers with 'train' in the name are shown.</value>
+  </data>
+  <data name="Dataset_AnnotationLayersFilterTooltip" xml:space="preserve">
+    <value>Layer filter: name contains train.</value>
+  </data>
+  <data name="Dataset_RefreshAnnotationTooltip" xml:space="preserve">
+    <value>Refresh list (only layers with train in name).</value>
+  </data>
+  <data name="Dataset_SlicingParameters" xml:space="preserve">
+    <value>Slicing Parameters</value>
+  </data>
+  <data name="Dataset_TileSizePx" xml:space="preserve">
+    <value>Tile Size (px):</value>
+  </data>
+  <data name="Dataset_TileSizeTooltip" xml:space="preserve">
+    <value>Recommended range 64..2048.</value>
+  </data>
+  <data name="Dataset_Overlap" xml:space="preserve">
+    <value>Overlap (0..0.9):</value>
+  </data>
+  <data name="Dataset_OverlapTooltip" xml:space="preserve">
+    <value>For example 0.2 = 20%.</value>
+  </data>
+  <data name="Dataset_DatasetType" xml:space="preserve">
+    <value>Dataset Type</value>
+  </data>
+  <data name="Dataset_DatasetTypeTooltip" xml:space="preserve">
+    <value>Annotation format in Ultralytics YOLO style.</value>
+  </data>
+  <data name="Dataset_SplitHeader" xml:space="preserve">
+    <value>Train / Val / Test Split</value>
+  </data>
+  <data name="Dataset_BackgroundHeader" xml:space="preserve">
+    <value>Background / Class Balance / Debug</value>
+  </data>
+  <data name="Dataset_BackgroundLimit" xml:space="preserve">
+    <value>Background limit:</value>
+  </data>
+  <data name="Dataset_Percent" xml:space="preserve">
+    <value>Percent</value>
+  </data>
+  <data name="Dataset_EnableClassBalancing" xml:space="preserve">
+    <value>Enable class balancing</value>
+  </data>
+  <data name="Dataset_EnableClassBalancingTooltip" xml:space="preserve">
+    <value>Class balancing for Train/Val.</value>
+  </data>
+  <data name="Dataset_BalancingMethod" xml:space="preserve">
+    <value>Balancing method:</value>
+  </data>
+  <data name="Dataset_DebugMode" xml:space="preserve">
+    <value>Debug Mode</value>
+  </data>
+  <data name="Dataset_DebugModeTooltip" xml:space="preserve">
+    <value>Save visualizations and additional debug artifacts.</value>
+  </data>
+  <data name="Dataset_DataAugmentation" xml:space="preserve">
+    <value>Data Augmentation</value>
+  </data>
+  <data name="Dataset_Seed" xml:space="preserve">
+    <value>Seed:</value>
+  </data>
+  <data name="Dataset_SeedTooltip" xml:space="preserve">
+    <value>Fixed seed for reproducibility.</value>
+  </data>
+  <data name="Dataset_ApplyToVal" xml:space="preserve">
+    <value>Apply to Val</value>
+  </data>
+  <data name="Dataset_ApplyToValTooltip" xml:space="preserve">
+    <value>If enabled: augmentation is also applied to the validation split. Usually left off so metrics reflect quality on 'clean' data.</value>
+  </data>
+  <data name="Dataset_ApplyToTest" xml:space="preserve">
+    <value>Apply to Test</value>
+  </data>
+  <data name="Dataset_ApplyToTestTooltip" xml:space="preserve">
+    <value>If enabled: augmentation is also applied to the test split. Recommended to disable for objective final model testing.</value>
+  </data>
+  <data name="Dataset_TabGeometry" xml:space="preserve">
+    <value>📐 Geometry</value>
+  </data>
+  <data name="Dataset_TabColor" xml:space="preserve">
+    <value>🎨 Color</value>
+  </data>
+  <data name="Dataset_TabNoiseBlur" xml:space="preserve">
+    <value>🌫️ Noise &amp; Blur</value>
+  </data>
+  <data name="Dataset_TabAdvanced" xml:space="preserve">
+    <value>⚡ Advanced</value>
+  </data>
+  <data name="Dataset_TabPreview" xml:space="preserve">
+    <value>👁️ Preview</value>
+  </data>
+  <data name="Dataset_TabPresets" xml:space="preserve">
+    <value>💾 Presets</value>
+  </data>
+  <data name="Dataset_AugmentationEnableTooltip" xml:space="preserve">
+    <value>Enable/disable augmentation.</value>
+  </data>
+  <data name="Dataset_RecommendationFormat" xml:space="preserve">
+    <value>Recommendation: {0}</value>
+  </data>
+  <data name="Dataset_Range" xml:space="preserve">
+    <value>Range:</value>
+  </data>
+  <data name="Dataset_RangeLowerTooltip" xml:space="preserve">
+    <value>Lower bound of range.</value>
+  </data>
+  <data name="Dataset_DecrementLowerTooltip" xml:space="preserve">
+    <value>Decrease lower threshold.</value>
+  </data>
+  <data name="Dataset_IncrementLowerTooltip" xml:space="preserve">
+    <value>Increase lower threshold.</value>
+  </data>
+  <data name="Dataset_RangeUpperTooltip" xml:space="preserve">
+    <value>Upper bound of range.</value>
+  </data>
+  <data name="Dataset_DecrementUpperTooltip" xml:space="preserve">
+    <value>Decrease upper threshold.</value>
+  </data>
+  <data name="Dataset_IncrementUpperTooltip" xml:space="preserve">
+    <value>Increase upper threshold.</value>
+  </data>
+  <data name="Dataset_Probability" xml:space="preserve">
+    <value>Probability:</value>
+  </data>
+  <data name="Dataset_ProbabilityTooltip" xml:space="preserve">
+    <value>Application probability (0..1).</value>
+  </data>
+  <data name="Dataset_DecrementProbTooltip" xml:space="preserve">
+    <value>Decrease probability.</value>
+  </data>
+  <data name="Dataset_IncrementProbTooltip" xml:space="preserve">
+    <value>Increase probability.</value>
+  </data>
+  <data name="Dataset_MinProbTooltip" xml:space="preserve">
+    <value>Minimum allowed probability.</value>
+  </data>
+  <data name="Dataset_MaxProbTooltip" xml:space="preserve">
+    <value>Maximum allowed probability.</value>
+  </data>
+  <data name="Dataset_ResetTooltip" xml:space="preserve">
+    <value>Reset to default values.</value>
+  </data>
+  <data name="Dataset_TilesFolder" xml:space="preserve">
+    <value>Tiles folder:</value>
+  </data>
+  <data name="Dataset_TilesFolderTooltip" xml:space="preserve">
+    <value>Path to the tiles folder for preview.</value>
+  </data>
+  <data name="Dataset_BrowsePreviewTooltip" xml:space="preserve">
+    <value>Select a tiles folder for preview.</value>
+  </data>
+  <data name="Dataset_ApplyNextTransform" xml:space="preserve">
+    <value>Apply Next Transform</value>
+  </data>
+  <data name="Dataset_ApplyNextTransformTooltip" xml:space="preserve">
+    <value>Apply the next transform (round-robin) to the current image.</value>
+  </data>
+  <data name="Dataset_ApplySelected" xml:space="preserve">
+    <value>Apply selected:</value>
+  </data>
+  <data name="Dataset_ApplySelectedTooltip" xml:space="preserve">
+    <value>Select an enabled transform to apply it to the current tile immediately.</value>
+  </data>
+  <data name="Dataset_ApplyingTransform" xml:space="preserve">
+    <value>Applying transform...</value>
+  </data>
+  <data name="Dataset_CurrentTile" xml:space="preserve">
+    <value>Current tile:</value>
+  </data>
+  <data name="Dataset_CurrentTileTooltip" xml:space="preserve">
+    <value>Current tile file for preview.</value>
+  </data>
+  <data name="Dataset_PrevImageTooltip" xml:space="preserve">
+    <value>Previous image</value>
+  </data>
+  <data name="Dataset_NextImageTooltip" xml:space="preserve">
+    <value>Next image</value>
+  </data>
+  <data name="Dataset_PreviewInstructions" xml:space="preserve">
+    <value>Select a tiles folder: the first image will load. Use ←/→ buttons to switch images. Press Apply Next Transform to apply the next enabled transform.</value>
+  </data>
+  <data name="Dataset_Applied" xml:space="preserve">
+    <value>Applied:</value>
+  </data>
+  <data name="Dataset_BuiltInPresets" xml:space="preserve">
+    <value>Built-in presets:</value>
+  </data>
+  <data name="Dataset_PresetsDescription" xml:space="preserve">
+    <value>Preset — a ready-made set of enabled augmentations, their ranges and probabilities. Use as a starting point, then adjust for your dataset.</value>
+  </data>
+  <data name="Dataset_PresetNoneTooltip" xml:space="preserve">
+    <value>Disable all augmentations and restore defaults.</value>
+  </data>
+  <data name="Dataset_PresetLightTooltip" xml:space="preserve">
+    <value>Light and safe augmentations: minimal geometric/color changes.</value>
+  </data>
+  <data name="Dataset_PresetStandardTooltip" xml:space="preserve">
+    <value>Balanced set for most detection/segmentation tasks.</value>
+  </data>
+  <data name="Dataset_PresetAggressiveTooltip" xml:space="preserve">
+    <value>Maximum augmentations. Use carefully and check for quality degradation.</value>
+  </data>
+  <data name="Dataset_PresetOutdoorAerialTooltip" xml:space="preserve">
+    <value>Set for outdoor/aerial scenes: shadows, fog, local contrast.</value>
+  </data>
+  <data name="Dataset_SavePreset" xml:space="preserve">
+    <value>Save preset (.json)</value>
+  </data>
+  <data name="Dataset_SavePresetTooltip" xml:space="preserve">
+    <value>Save current augmentation settings (including ranges and probabilities) to a JSON file for reuse.</value>
+  </data>
+  <data name="Dataset_LoadPreset" xml:space="preserve">
+    <value>Load preset (.json)</value>
+  </data>
+  <data name="Dataset_LoadPresetTooltip" xml:space="preserve">
+    <value>Load a previously saved JSON preset and apply it to the current panel.</value>
+  </data>
+  <data name="Dataset_ExportHyp" xml:space="preserve">
+    <value>Export hyp.yaml</value>
+  </data>
+  <data name="Dataset_ExportHypTooltip" xml:space="preserve">
+    <value>Export parameters in hyp.yaml format for Ultralytics YOLO (convenient for CLI training).</value>
+  </data>
+  <data name="Dataset_Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Dataset_EstimatedSourceImages" xml:space="preserve">
+    <value>Estimated source images:</value>
+  </data>
+  <data name="Dataset_DatasetMultiplierFormat" xml:space="preserve">
+    <value>Dataset multiplier: ×{0}</value>
+  </data>
+  <data name="Dataset_EstimatedTotalFormat" xml:space="preserve">
+    <value>Estimated total images: {0}</value>
+  </data>
+  <data name="Dataset_EstimatedTimeFormat" xml:space="preserve">
+    <value>Estimated generation time: {0}</value>
+  </data>
+  <data name="Dataset_RunTooltip" xml:space="preserve">
+    <value>Start dataset creation.</value>
+  </data>
+  <data name="Dataset_CreateDataset" xml:space="preserve">
+    <value>Create Dataset</value>
+  </data>
+  <data name="Dataset_Running" xml:space="preserve">
+    <value>Running...</value>
+  </data>
+  <data name="Dataset_TilesExistMessage" xml:space="preserve">
+    <value>Tiles for size {0}px already exist. Use existing?
 
-  <!-- ===== Config.daml ===== -->
-  <data name="Daml_GroupCaption" xml:space="preserve"><value>YOLO Tool</value></data>
-  <data name="Daml_DetectionCaption" xml:space="preserve"><value>Detection</value></data>
-  <data name="Daml_CreateDatasetCaption" xml:space="preserve"><value>Create Dataset</value></data>
-  <data name="Daml_YoloDetectionCaption" xml:space="preserve"><value>Yolo Detection</value></data>
+Yes — use existing
+No — regenerate
+Cancel — abort operation</value>
+  </data>
+  <data name="Dataset_TilesExistTitle" xml:space="preserve">
+    <value>Tiles already exist</value>
+  </data>
+  <data name="Dataset_OrthoNotFound" xml:space="preserve">
+    <value>Source ortho image not found in Products/Orthos.</value>
+  </data>
+  <data name="Aug_Rotate90CW_Desc" xml:space="preserve">
+    <value>Creates a deterministic copy by rotating the tile 90° clockwise.</value>
+  </data>
+  <data name="Aug_Rotate90CW_Rec" xml:space="preserve">
+    <value>Useful when objects can appear in any orientation relative to the map axis.</value>
+  </data>
+  <data name="Aug_Rotate180_Desc" xml:space="preserve">
+    <value>Creates a deterministic copy flipped 180°.</value>
+  </data>
+  <data name="Aug_Rotate180_Rec" xml:space="preserve">
+    <value>Improves model robustness to inverted scene orientation.</value>
+  </data>
+  <data name="Aug_Rotate270CW_Desc" xml:space="preserve">
+    <value>Creates a deterministic copy by rotating the tile 270° clockwise.</value>
+  </data>
+  <data name="Aug_Rotate270CW_Rec" xml:space="preserve">
+    <value>Add together with other rotations for full orientation coverage.</value>
+  </data>
+  <data name="Aug_FlipH_Desc" xml:space="preserve">
+    <value>Creates a horizontally mirrored copy.</value>
+  </data>
+  <data name="Aug_FlipH_Rec" xml:space="preserve">
+    <value>Improves robustness to left/right object variations.</value>
+  </data>
+  <data name="Aug_FlipV_Desc" xml:space="preserve">
+    <value>Creates a vertically mirrored copy.</value>
+  </data>
+  <data name="Aug_FlipV_Rec" xml:space="preserve">
+    <value>Use with caution: often useful for aerial data, but may introduce unrealistic scenes.</value>
+  </data>
+  <data name="Aug_ShearX_Desc" xml:space="preserve">
+    <value>Shears the image along the X axis, simulating a perspective shift.</value>
+  </data>
+  <data name="Aug_ShearX_Rec" xml:space="preserve">
+    <value>Moderate values (up to 5–10°) are usually sufficient; larger values may distort objects.</value>
+  </data>
+  <data name="Aug_ShearY_Desc" xml:space="preserve">
+    <value>Shears the image along the Y axis.</value>
+  </data>
+  <data name="Aug_ShearY_Rec" xml:space="preserve">
+    <value>Use together with Shear X for robustness to oblique viewpoints.</value>
+  </data>
+  <data name="Aug_Scale_Desc" xml:space="preserve">
+    <value>Scales the scene, changing the relative size of objects.</value>
+  </data>
+  <data name="Aug_Scale_Rec" xml:space="preserve">
+    <value>A range of about 0.8–1.2 usually gives a realistic effect without significant degradation.</value>
+  </data>
+  <data name="Aug_TranslateX_Desc" xml:space="preserve">
+    <value>Shifts the image horizontally.</value>
+  </data>
+  <data name="Aug_TranslateX_Rec" xml:space="preserve">
+    <value>Useful for training on offset objects; too large a shift increases the proportion of clipped annotations.</value>
+  </data>
+  <data name="Aug_TranslateY_Desc" xml:space="preserve">
+    <value>Shifts the image vertically.</value>
+  </data>
+  <data name="Aug_TranslateY_Rec" xml:space="preserve">
+    <value>Keep the value moderate to avoid losing annotations at the frame edge.</value>
+  </data>
+  <data name="Aug_Perspective_Desc" xml:space="preserve">
+    <value>Adds perspective distortion to simulate a change in viewpoint.</value>
+  </data>
+  <data name="Aug_Perspective_Rec" xml:space="preserve">
+    <value>Start with small values (0.0005–0.001) to avoid strong deformation.</value>
+  </data>
+  <data name="Aug_RandomCrop_Desc" xml:space="preserve">
+    <value>Randomly crops the image, keeping the selected fraction of the original frame.</value>
+  </data>
+  <data name="Aug_RandomCrop_Rec" xml:space="preserve">
+    <value>Lowering the parameter increases diversity but may increase the number of empty tiles.</value>
+  </data>
+  <data name="Aug_Hue_Desc" xml:space="preserve">
+    <value>Shifts the hue in HSV, changing the color tone of objects and background.</value>
+  </data>
+  <data name="Aug_Hue_Rec" xml:space="preserve">
+    <value>Useful under varying lighting conditions and seasons.</value>
+  </data>
+  <data name="Aug_Saturation_Desc" xml:space="preserve">
+    <value>Changes color saturation.</value>
+  </data>
+  <data name="Aug_Saturation_Rec" xml:space="preserve">
+    <value>Avoid extremes to prevent unnatural textures.</value>
+  </data>
+  <data name="Aug_Brightness_Desc" xml:space="preserve">
+    <value>Adjusts image brightness.</value>
+  </data>
+  <data name="Aug_Brightness_Rec" xml:space="preserve">
+    <value>Small fluctuations help the model generalize between bright and dark scenes.</value>
+  </data>
+  <data name="Aug_Contrast_Desc" xml:space="preserve">
+    <value>Increases or decreases contrast between object and background.</value>
+  </data>
+  <data name="Aug_Contrast_Rec" xml:space="preserve">
+    <value>Moderate contrast is useful for robustness to different sensors/exposures.</value>
+  </data>
+  <data name="Aug_CLAHE_Desc" xml:space="preserve">
+    <value>Locally equalizes contrast, enhancing details in dark and bright areas.</value>
+  </data>
+  <data name="Aug_CLAHE_Rec" xml:space="preserve">
+    <value>Use moderately to avoid amplifying noise.</value>
+  </data>
+  <data name="Aug_AutoContrast_Desc" xml:space="preserve">
+    <value>Automatically stretches the histogram by clipping extreme values.</value>
+  </data>
+  <data name="Aug_AutoContrast_Rec" xml:space="preserve">
+    <value>Works well for heterogeneous images with unstable exposure.</value>
+  </data>
+  <data name="Aug_Grayscale_Desc" xml:space="preserve">
+    <value>Converts the image to grayscale with a given probability.</value>
+  </data>
+  <data name="Aug_Grayscale_Rec" xml:space="preserve">
+    <value>Helps reduce the model's dependence on color when shape/texture matters more.</value>
+  </data>
+  <data name="Aug_Solarize_Desc" xml:space="preserve">
+    <value>Inverts pixels above a threshold, creating a high-contrast effect.</value>
+  </data>
+  <data name="Aug_Solarize_Rec" xml:space="preserve">
+    <value>Use rarely and with low probability as regularization.</value>
+  </data>
+  <data name="Aug_Posterize_Desc" xml:space="preserve">
+    <value>Reduces the number of bits per channel, simplifying color gradations.</value>
+  </data>
+  <data name="Aug_Posterize_Rec" xml:space="preserve">
+    <value>Suitable for improving robustness to quantization/compression.</value>
+  </data>
+  <data name="Aug_Equalize_Desc" xml:space="preserve">
+    <value>Globally equalizes the brightness histogram.</value>
+  </data>
+  <data name="Aug_Equalize_Rec" xml:space="preserve">
+    <value>Useful for equalizing contrast across different scenes.</value>
+  </data>
+  <data name="Aug_GaussianBlur_Desc" xml:space="preserve">
+    <value>Blurs the image with a Gaussian filter.</value>
+  </data>
+  <data name="Aug_GaussianBlur_Rec" xml:space="preserve">
+    <value>Simulates defocus/motion blur; apply large kernels carefully.</value>
+  </data>
+  <data name="Aug_MedianBlur_Desc" xml:space="preserve">
+    <value>Median blur suppresses impulse noise while preserving edges.</value>
+  </data>
+  <data name="Aug_MedianBlur_Rec" xml:space="preserve">
+    <value>Works well on noisy images without significant loss of contours.</value>
+  </data>
+  <data name="Aug_GaussianNoise_Desc" xml:space="preserve">
+    <value>Adds Gaussian noise to pixels.</value>
+  </data>
+  <data name="Aug_GaussianNoise_Rec" xml:space="preserve">
+    <value>Improves robustness to noisy sensors, but excess degrades label quality.</value>
+  </data>
+  <data name="Aug_SaltPepper_Desc" xml:space="preserve">
+    <value>Adds impulse noise (white/black dots).</value>
+  </data>
+  <data name="Aug_SaltPepper_Rec" xml:space="preserve">
+    <value>Use low density to simulate transmission/compression artifacts.</value>
+  </data>
+  <data name="Aug_RandomShadow_Desc" xml:space="preserve">
+    <value>Overlays artificial shadows.</value>
+  </data>
+  <data name="Aug_RandomShadow_Rec" xml:space="preserve">
+    <value>Useful for aerial photos with variable lighting; don't overuse the application rate.</value>
+  </data>
+  <data name="Aug_RainFog_Desc" xml:space="preserve">
+    <value>Simulates atmospheric rain/fog effects.</value>
+  </data>
+  <data name="Aug_RainFog_Rec" xml:space="preserve">
+    <value>Moderate intensity improves model transferability to bad weather.</value>
+  </data>
+  <data name="Aug_Mosaic_Desc" xml:space="preserve">
+    <value>Combines 4 images into one to increase object density.</value>
+  </data>
+  <data name="Aug_Mosaic_Rec" xml:space="preserve">
+    <value>Strong augmentation for train; enable carefully for stable validation.</value>
+  </data>
+  <data name="Aug_MixUp_Desc" xml:space="preserve">
+    <value>Linearly blends two images and their annotations.</value>
+  </data>
+  <data name="Aug_MixUp_Rec" xml:space="preserve">
+    <value>Low alpha values usually give the best balance between regularization and readability.</value>
+  </data>
+  <data name="Aug_CopyPaste_Desc" xml:space="preserve">
+    <value>Copies objects between images to increase class variability.</value>
+  </data>
+  <data name="Aug_CopyPaste_Rec" xml:space="preserve">
+    <value>Useful for class imbalance and rare objects.</value>
+  </data>
+  <data name="Aug_CutOut_Desc" xml:space="preserve">
+    <value>Randomly hides image fragments with rectangular cutouts.</value>
+  </data>
+  <data name="Aug_CutOut_Rec" xml:space="preserve">
+    <value>Helps with occlusion robustness, but large areas may remove important features.</value>
+  </data>
+  <data name="Aug_Erasing_Desc" xml:space="preserve">
+    <value>Probabilistically erases random image regions.</value>
+  </data>
+  <data name="Aug_Erasing_Rec" xml:space="preserve">
+    <value>Use low/medium probability for moderate regularization.</value>
+  </data>
+  <data name="Aug_Default_Desc" xml:space="preserve">
+    <value>Transform modifies the appearance of training images.</value>
+  </data>
+  <data name="Aug_Default_Rec" xml:space="preserve">
+    <value>Adjust parameters gradually and check the effect in Preview.</value>
+  </data>
+  <data name="Daml_GroupCaption" xml:space="preserve">
+    <value>YOLO Tool</value>
+  </data>
+  <data name="Daml_DetectionCaption" xml:space="preserve">
+    <value>Detection</value>
+  </data>
+  <data name="Daml_CreateDatasetCaption" xml:space="preserve">
+    <value>Create Dataset</value>
+  </data>
+  <data name="Daml_YoloDetectionCaption" xml:space="preserve">
+    <value>Yolo Detection</value>
+  </data>
+  <data name="Dataset_SelectedAnnotationLayersSummary" xml:space="preserve">
+    <value>Annotation layers selected:</value>
+  </data>
 </root>

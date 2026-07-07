@@ -382,7 +382,7 @@ namespace ArcGisProAppYolo.DockPanes
             get
             {
                 var selectedCount = AnnotationLayers.Count(a => a.IsSelected);
-                return $"Выбрано слоёв аннотаций: {selectedCount}";
+                return $"{Resources.Strings.Dataset_SelectedAnnotationLayersSummary}: {selectedCount}";
             }
         }
 
@@ -2716,141 +2716,73 @@ namespace ArcGisProAppYolo.DockPanes
                 switch (name)
                 {
                     case "Rotate 90° CW":
-                        return (
-                            "Создаёт детерминированную копию, поворачивая тайл на 90° по часовой стрелке.",
-                            "Полезно, если объекты могут встречаться в любой ориентации по оси карты.");
+                        return (Resources.Strings.Aug_Rotate90CW_Desc, Resources.Strings.Aug_Rotate90CW_Rec);
                     case "Rotate 180°":
-                        return (
-                            "Создаёт детерминированную копию с переворотом на 180°.",
-                            "Усиливает устойчивость модели к инверсной ориентации сцены.");
+                        return (Resources.Strings.Aug_Rotate180_Desc, Resources.Strings.Aug_Rotate180_Rec);
                     case "Rotate 270° CW":
-                        return (
-                            "Создаёт детерминированную копию, поворачивая тайл на 270° по часовой стрелке.",
-                            "Добавляйте вместе с другими поворотами для полного покрытия ориентаций.");
+                        return (Resources.Strings.Aug_Rotate270CW_Desc, Resources.Strings.Aug_Rotate270CW_Rec);
                     case "Flip Horizontal":
-                        return (
-                            "Создаёт зеркальную копию по горизонтали.",
-                            "Повышает устойчивость к левосторонним/правосторонним вариациям объектов.");
+                        return (Resources.Strings.Aug_FlipH_Desc, Resources.Strings.Aug_FlipH_Rec);
                     case "Flip Vertical":
-                        return (
-                            "Создаёт зеркальную копию по вертикали.",
-                            "Включайте осторожно: при аэро-данных часто полезно, но иногда вносит нереалистичные сцены.");
+                        return (Resources.Strings.Aug_FlipV_Desc, Resources.Strings.Aug_FlipV_Rec);
                     case "Shear X":
-                        return (
-                            "Наклоняет изображение по оси X, имитируя сдвиг перспективы.",
-                            "Умеренные значения (до 5–10°) обычно достаточны, большие могут искажать объекты.");
+                        return (Resources.Strings.Aug_ShearX_Desc, Resources.Strings.Aug_ShearX_Rec);
                     case "Shear Y":
-                        return (
-                            "Наклоняет изображение по оси Y.",
-                            "Используйте совместно с Shear X для устойчивости к наклонным ракурсам.");
+                        return (Resources.Strings.Aug_ShearY_Desc, Resources.Strings.Aug_ShearY_Rec);
                     case "Scale":
-                        return (
-                            "Масштабирует сцену, изменяя относительный размер объектов.",
-                            "Диапазон около 0.8–1.2 обычно даёт реалистичный эффект без сильной деградации.");
+                        return (Resources.Strings.Aug_Scale_Desc, Resources.Strings.Aug_Scale_Rec);
                     case "Translate X":
-                        return (
-                            "Сдвигает изображение по горизонтали.",
-                            "Полезно для тренировки на смещённых объектах; слишком большой сдвиг увеличивает долю обрезаний.");
+                        return (Resources.Strings.Aug_TranslateX_Desc, Resources.Strings.Aug_TranslateX_Rec);
                     case "Translate Y":
-                        return (
-                            "Сдвигает изображение по вертикали.",
-                            "Держите значение умеренным, чтобы не терять аннотации у края кадра.");
+                        return (Resources.Strings.Aug_TranslateY_Desc, Resources.Strings.Aug_TranslateY_Rec);
                     case "Perspective":
-                        return (
-                            "Добавляет перспективное искажение для имитации изменения точки наблюдения.",
-                            "Начинайте с малых значений (0.0005–0.001), чтобы избежать сильной деформации.");
+                        return (Resources.Strings.Aug_Perspective_Desc, Resources.Strings.Aug_Perspective_Rec);
                     case "Random Crop":
-                        return (
-                            "Случайно кадрирует изображение, оставляя выбранную долю исходного кадра.",
-                            "Снижение параметра усиливает разнообразие, но может увеличить число пустых тайлов.");
+                        return (Resources.Strings.Aug_RandomCrop_Desc, Resources.Strings.Aug_RandomCrop_Rec);
                     case "Hue":
-                        return (
-                            "Смещает оттенок в HSV, меняя цветовой тон объектов и фона.",
-                            "Полезно при разных условиях освещения и сезонности.");
+                        return (Resources.Strings.Aug_Hue_Desc, Resources.Strings.Aug_Hue_Rec);
                     case "Saturation":
-                        return (
-                            "Изменяет насыщенность цветов.",
-                            "Избегайте экстремумов, чтобы не получить неестественные текстуры.");
+                        return (Resources.Strings.Aug_Saturation_Desc, Resources.Strings.Aug_Saturation_Rec);
                     case "Value (Brightness)":
-                        return (
-                            "Регулирует яркость изображения.",
-                            "Небольшие колебания помогают модели переноситься между светлыми и тёмными сценами.");
+                        return (Resources.Strings.Aug_Brightness_Desc, Resources.Strings.Aug_Brightness_Rec);
                     case "Contrast":
-                        return (
-                            "Увеличивает или уменьшает контраст между объектом и фоном.",
-                            "Умеренный контраст полезен для устойчивости к разным сенсорам/экспозициям.");
+                        return (Resources.Strings.Aug_Contrast_Desc, Resources.Strings.Aug_Contrast_Rec);
                     case "CLAHE":
-                        return (
-                            "Локально выравнивает контраст, усиливая детали в тёмных и светлых участках.",
-                            "Используйте умеренно, чтобы не переусилить шум.");
+                        return (Resources.Strings.Aug_CLAHE_Desc, Resources.Strings.Aug_CLAHE_Rec);
                     case "Auto Contrast":
-                        return (
-                            "Автоматически растягивает гистограмму с отсечением крайних значений.",
-                            "Хорошо работает для разнородных снимков с нестабильной экспозицией.");
+                        return (Resources.Strings.Aug_AutoContrast_Desc, Resources.Strings.Aug_AutoContrast_Rec);
                     case "Grayscale":
-                        return (
-                            "Переводит изображение в оттенки серого по вероятности.",
-                            "Помогает уменьшить зависимость модели от цвета, если важна форма/текстура.");
+                        return (Resources.Strings.Aug_Grayscale_Desc, Resources.Strings.Aug_Grayscale_Rec);
                     case "Solarize":
-                        return (
-                            "Инвертирует пиксели выше порога, создавая контрастный эффект.",
-                            "Используйте редко и с низкой вероятностью как регуляризацию.");
+                        return (Resources.Strings.Aug_Solarize_Desc, Resources.Strings.Aug_Solarize_Rec);
                     case "Posterize":
-                        return (
-                            "Уменьшает число бит на канал, упрощая цветовые градации.",
-                            "Подходит для повышения устойчивости к квантованию/сжатию.");
+                        return (Resources.Strings.Aug_Posterize_Desc, Resources.Strings.Aug_Posterize_Rec);
                     case "Equalize":
-                        return (
-                            "Глобально выравнивает гистограмму яркости.",
-                            "Полезно для выравнивания контраста между разными сценами.");
+                        return (Resources.Strings.Aug_Equalize_Desc, Resources.Strings.Aug_Equalize_Rec);
                     case "Gaussian Blur":
-                        return (
-                            "Размывает изображение гауссовым фильтром.",
-                            "Имитирует дефокус/смаз; большие ядра применяйте осторожно.");
+                        return (Resources.Strings.Aug_GaussianBlur_Desc, Resources.Strings.Aug_GaussianBlur_Rec);
                     case "Median Blur":
-                        return (
-                            "Медианное размытие подавляет импульсный шум, сохраняя границы.",
-                            "Хорошо работает при шумных изображениях без сильной потери контуров.");
+                        return (Resources.Strings.Aug_MedianBlur_Desc, Resources.Strings.Aug_MedianBlur_Rec);
                     case "Gaussian Noise":
-                        return (
-                            "Добавляет гауссов шум к пикселям.",
-                            "Повышает устойчивость к шумным сенсорам, но избыток ухудшает качество меток.");
+                        return (Resources.Strings.Aug_GaussianNoise_Desc, Resources.Strings.Aug_GaussianNoise_Rec);
                     case "Salt & Pepper":
-                        return (
-                            "Добавляет импульсный шум (белые/чёрные точки).",
-                            "Используйте малую плотность для имитации артефактов передачи/сжатия.");
+                        return (Resources.Strings.Aug_SaltPepper_Desc, Resources.Strings.Aug_SaltPepper_Rec);
                     case "Random Shadow":
-                        return (
-                            "Накладывает искусственные тени.",
-                            "Полезно для аэрофото с переменным освещением; не завышайте долю применения.");
+                        return (Resources.Strings.Aug_RandomShadow_Desc, Resources.Strings.Aug_RandomShadow_Rec);
                     case "Rain / Fog":
-                        return (
-                            "Имитирует атмосферные эффекты дождя/тумана.",
-                            "Умеренная интенсивность улучшает переносимость модели на плохую погоду.");
+                        return (Resources.Strings.Aug_RainFog_Desc, Resources.Strings.Aug_RainFog_Rec);
                     case "Mosaic (4 img)":
-                        return (
-                            "Комбинирует 4 изображения в одно для увеличения плотности объектов.",
-                            "Сильная аугментация для train; включайте с осторожностью для стабильной валидации.");
+                        return (Resources.Strings.Aug_Mosaic_Desc, Resources.Strings.Aug_Mosaic_Rec);
                     case "MixUp":
-                        return (
-                            "Линейно смешивает два изображения и их аннотации.",
-                            "Низкие значения alpha обычно дают лучший баланс между регуляризацией и читаемостью.");
+                        return (Resources.Strings.Aug_MixUp_Desc, Resources.Strings.Aug_MixUp_Rec);
                     case "Copy-Paste":
-                        return (
-                            "Копирует объекты между изображениями для увеличения вариативности классов.",
-                            "Полезно при дисбалансе классов и редких объектах.");
+                        return (Resources.Strings.Aug_CopyPaste_Desc, Resources.Strings.Aug_CopyPaste_Rec);
                     case "CutOut":
-                        return (
-                            "Случайно скрывает фрагменты изображения прямоугольными вырезами.",
-                            "Помогает устойчивости к окклюзиям, но большие области могут удалить важные признаки.");
+                        return (Resources.Strings.Aug_CutOut_Desc, Resources.Strings.Aug_CutOut_Rec);
                     case "Erasing":
-                        return (
-                            "Вероятностно стирает случайные области изображения.",
-                            "Используйте низкую/среднюю вероятность для умеренной регуляризации.");
+                        return (Resources.Strings.Aug_Erasing_Desc, Resources.Strings.Aug_Erasing_Rec);
                     default:
-                        return (
-                            "Преобразование изменяет внешний вид обучающих изображений.",
-                            "Подбирайте параметры постепенно и проверяйте эффект в Preview.");
+                        return (Resources.Strings.Aug_Default_Desc, Resources.Strings.Aug_Default_Rec);
                 }
             }
         }
