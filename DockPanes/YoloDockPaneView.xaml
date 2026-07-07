@@ -8,121 +8,118 @@
              d:DesignHeight="450" d:DesignWidth="400">
     <UserControl.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component/Themes/Default.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <Grid Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <!-- Ortho Selection -->
-        <GroupBox Header="{x:Static res:Strings.Yolo_OrthoSelection}" Grid.Row="1" Margin="0,0,0,10">
-            <StackPanel Margin="5">
-                <TextBlock Text="{x:Static res:Strings.Yolo_SelectOrtho}" Margin="0,0,0,5" ToolTip="{x:Static res:Strings.Yolo_SelectOrthoTooltip}"/>
-                <Grid Margin="0,0,0,5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <ComboBox ItemsSource="{Binding OrthoList}"
+            <!-- Ortho Selection -->
+            <GroupBox Header="{x:Static res:Strings.Yolo_OrthoSelection}" Grid.Row="1" Margin="0,0,0,10">
+                <StackPanel Margin="5">
+                    <TextBlock Text="{x:Static res:Strings.Yolo_SelectOrtho}" Margin="0,0,0,5" ToolTip="{x:Static res:Strings.Yolo_SelectOrthoTooltip}"/>
+                    <Grid Margin="0,0,0,5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox ItemsSource="{Binding OrthoList}"
                               SelectedItem="{Binding SelectedOrtho}"
                               Grid.Column="0"
                               Margin="0,0,5,0"
                               ToolTip="{x:Static res:Strings.Yolo_OrthoListTooltip}"/>
-                    <Button Content="⟳"
+                        <Button Content="⟳"
                             Command="{Binding RefreshOrthoListCommand}"
                             Grid.Column="1"
                             Width="28"
                             Height="28"
                             ToolTip="{x:Static res:Strings.Yolo_RefreshOrthoTooltip}"/>
-                </Grid>
-                <TextBlock Text="{Binding OrthoList.Count, StringFormat={x:Static res:Strings.Yolo_AvailableFormat}}" 
+                    </Grid>
+                    <TextBlock Text="{Binding OrthoList.Count, StringFormat={x:Static res:Strings.Yolo_AvailableFormat}}" 
                            FontStyle="Italic" 
                            Foreground="Gray"/>
-            </StackPanel>
-        </GroupBox>
+                </StackPanel>
+            </GroupBox>
 
-        <!-- Model Path -->
-        <GroupBox Header="{x:Static res:Strings.Yolo_ModelConfiguration}" Grid.Row="2" Margin="0,0,0,10">
-            <Grid Margin="5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <ComboBox Grid.Column="0"
+            <!-- Model Path -->
+            <GroupBox Header="{x:Static res:Strings.Yolo_ModelConfiguration}" Grid.Row="2" Margin="0,0,0,10">
+                <Grid Margin="5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0"
                           Margin="0,0,5,0"
                           IsEditable="False"
                           ItemsSource="{Binding KnownModels}"
                           DisplayMemberPath="DisplayName"
                           SelectedItem="{Binding SelectedKnownModel, Mode=TwoWay}"
                           ToolTip="{Binding ModelPath}">
-                    <ComboBox.ItemContainerStyle>
-                        <Style TargetType="ComboBoxItem">
-                            <Setter Property="ToolTip" Value="{Binding FullPath}" />
-                        </Style>
-                    </ComboBox.ItemContainerStyle>
-                </ComboBox>
-                <Button Content="{x:Static res:Strings.Common_Browse}" 
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem">
+                                <Setter Property="ToolTip" Value="{Binding FullPath}" />
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
+                    </ComboBox>
+                    <Button Content="{x:Static res:Strings.Common_Browse}" 
                         Command="{Binding BrowseCommand}" 
                         Grid.Column="1" 
                         Width="80"
                         ToolTip="{x:Static res:Strings.Yolo_BrowseModelTooltip}"/>
-            </Grid>
-        </GroupBox>
+                </Grid>
+            </GroupBox>
 
-        <!-- Tile Settings -->
-        <GroupBox Header="{x:Static res:Strings.Yolo_TileSettings}" Grid.Row="3" Margin="0,0,0,10">
-            <StackPanel Margin="5">
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                    <TextBlock Text="{x:Static res:Strings.Yolo_TileSize}" Width="100" VerticalAlignment="Center" ToolTip="{x:Static res:Strings.Yolo_TileSizeTooltip}"/>
-                    <TextBox Text="{Binding TileSize, UpdateSourceTrigger=PropertyChanged}" Width="80" ToolTip="{x:Static res:Strings.Yolo_TileSizeValueTooltip}"/>
+            <!-- Tile Settings -->
+            <GroupBox Header="{x:Static res:Strings.Yolo_TileSettings}" Grid.Row="3" Margin="0,0,0,10">
+                <StackPanel Margin="5">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                        <TextBlock Text="{x:Static res:Strings.Yolo_TileSize}" Width="100" VerticalAlignment="Center" ToolTip="{x:Static res:Strings.Yolo_TileSizeTooltip}"/>
+                        <TextBox Text="{Binding TileSize, UpdateSourceTrigger=PropertyChanged}" Width="80" ToolTip="{x:Static res:Strings.Yolo_TileSizeValueTooltip}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{x:Static res:Strings.Yolo_OverlapPercent}" Width="100" VerticalAlignment="Center" ToolTip="{x:Static res:Strings.Yolo_OverlapTooltip}"/>
+                        <TextBox Text="{Binding OverlapPercent, UpdateSourceTrigger=PropertyChanged}" Width="80" ToolTip="{x:Static res:Strings.Yolo_OverlapValueTooltip}"/>
+                    </StackPanel>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="{x:Static res:Strings.Yolo_OverlapPercent}" Width="100" VerticalAlignment="Center" ToolTip="{x:Static res:Strings.Yolo_OverlapTooltip}"/>
-                    <TextBox Text="{Binding OverlapPercent, UpdateSourceTrigger=PropertyChanged}" Width="80" ToolTip="{x:Static res:Strings.Yolo_OverlapValueTooltip}"/>
-                </StackPanel>
-            </StackPanel>
-        </GroupBox>
+            </GroupBox>
 
-        <!-- Detection Settings -->
-        <GroupBox Header="{x:Static res:Strings.Yolo_DetectionSettings}" Grid.Row="4" Margin="0,0,0,10">
-            <StackPanel Margin="5">
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                    <TextBlock Text="{x:Static res:Strings.Yolo_Confidence}" Width="100" VerticalAlignment="Center" ToolTip="{x:Static res:Strings.Yolo_ConfidenceTooltip}"/>
-                    <TextBox Text="{Binding Confidence, UpdateSourceTrigger=PropertyChanged}" Width="80" ToolTip="{x:Static res:Strings.Yolo_ConfidenceValueTooltip}"/>
-                </StackPanel>
-                <CheckBox Content="{x:Static res:Strings.Yolo_OutputPoints}" IsChecked="{Binding OutputPoints}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_OutputPointsTooltip}"/>
-                <CheckBox Content="{x:Static res:Strings.Yolo_OutputMasks}" IsChecked="{Binding OutputMasks}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_OutputMasksTooltip}"/>
-                <CheckBox Content="{x:Static res:Strings.Yolo_OutputBoxes}" IsChecked="{Binding OutputBBoxes}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_OutputBoxesTooltip}"/>
-                <CheckBox Content="{x:Static res:Strings.Yolo_OutputOBB}" IsChecked="{Binding OutputOBB}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_OutputOBBTooltip}"/>
-                <CheckBox Content="{x:Static res:Strings.Yolo_UseSahi}" IsChecked="{Binding UseSahi}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_UseSahiTooltip}"/>
+            <!-- Detection Settings -->
+            <GroupBox Header="{x:Static res:Strings.Yolo_DetectionSettings}" Grid.Row="4" Margin="0,0,0,10">
+                <StackPanel Margin="5">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                        <TextBlock Text="{x:Static res:Strings.Yolo_Confidence}" Width="100" VerticalAlignment="Center" ToolTip="{x:Static res:Strings.Yolo_ConfidenceTooltip}"/>
+                        <TextBox Text="{Binding Confidence, UpdateSourceTrigger=PropertyChanged}" Width="80" ToolTip="{x:Static res:Strings.Yolo_ConfidenceValueTooltip}"/>
+                    </StackPanel>
+                    <CheckBox Content="{x:Static res:Strings.Yolo_OutputPoints}" IsChecked="{Binding OutputPoints}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_OutputPointsTooltip}"/>
+                    <CheckBox Content="{x:Static res:Strings.Yolo_OutputMasks}" IsChecked="{Binding OutputMasks}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_OutputMasksTooltip}"/>
+                    <CheckBox Content="{x:Static res:Strings.Yolo_OutputBoxes}" IsChecked="{Binding OutputBBoxes}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_OutputBoxesTooltip}"/>
+                    <CheckBox Content="{x:Static res:Strings.Yolo_OutputOBB}" IsChecked="{Binding OutputOBB}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_OutputOBBTooltip}"/>
+                    <CheckBox Content="{x:Static res:Strings.Yolo_UseSahi}" IsChecked="{Binding UseSahi}" Margin="0,5,0,0" ToolTip="{x:Static res:Strings.Yolo_UseSahiTooltip}"/>
 
-                <GroupBox Header="{x:Static res:Strings.Yolo_MaskMode}" Margin="0,8,0,0" ToolTip="{x:Static res:Strings.Yolo_MaskModeTooltip}">
-                    <StackPanel Margin="5">
-                        <RadioButton Content="{x:Static res:Strings.Yolo_MaskModeLargest}"
+                    <GroupBox Header="{x:Static res:Strings.Yolo_MaskMode}" Margin="0,8,0,0" ToolTip="{x:Static res:Strings.Yolo_MaskModeTooltip}">
+                        <StackPanel Margin="5">
+                            <RadioButton Content="{x:Static res:Strings.Yolo_MaskModeLargest}"
                                      IsChecked="{Binding MaskModeLargest}"
                                      Margin="0,0,0,4"
                                      ToolTip="{x:Static res:Strings.Yolo_MaskModeLargestTooltip}"/>
-                        <RadioButton Content="{x:Static res:Strings.Yolo_MaskModeUnion}"
+                            <RadioButton Content="{x:Static res:Strings.Yolo_MaskModeUnion}"
                                      IsChecked="{Binding MaskModeUnion}"
                                      ToolTip="{x:Static res:Strings.Yolo_MaskModeUnionTooltip}"/>
-                    </StackPanel>
-                </GroupBox>
-            </StackPanel>
-        </GroupBox>
+                        </StackPanel>
+                    </GroupBox>
+                </StackPanel>
+            </GroupBox>
 
-        <!-- Run Button -->
-        <Button Content="{Binding RunButtonText}" 
+            <!-- Run Button -->
+            <Button Content="{Binding RunButtonText}" 
                 Command="{Binding RunCommand}" 
                 Grid.Row="5" 
                 Height="30" 
@@ -130,18 +127,19 @@
                 IsEnabled="{Binding IsRunEnabled}"
                 ToolTip="{x:Static res:Strings.Yolo_RunButtonTooltip}"/>
 
-        <!-- Progress -->
-        <GroupBox Header="{x:Static res:Strings.Common_Progress}" Grid.Row="6" Margin="0,0,0,10">
-            <TextBox Text="{Binding ProgressText}"
+            <!-- Progress -->
+            <GroupBox Header="{x:Static res:Strings.Common_Progress}" Grid.Row="6" Margin="0,0,0,10">
+                <TextBox Text="{Binding ProgressText}"
                      Margin="5"
                      MinHeight="120"
+                     MaxHeight="300"
                      AcceptsReturn="True"
                      IsReadOnly="True"
-                     TextWrapping="NoWrap"
+                     TextWrapping="Wrap"
                      VerticalScrollBarVisibility="Auto"
-                     HorizontalScrollBarVisibility="Auto"
                      ToolTip="{x:Static res:Strings.Yolo_ProgressTooltip}"/>
-        </GroupBox>
+            </GroupBox>
 
-    </Grid>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

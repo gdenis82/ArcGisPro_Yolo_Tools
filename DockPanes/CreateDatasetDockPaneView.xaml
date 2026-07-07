@@ -9,9 +9,6 @@
              d:DesignWidth="450">
     <UserControl.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component/Themes/Default.xaml" />
-            </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
 
             <CollectionViewSource x:Key="EnabledPreviewOperationsView"
@@ -158,7 +155,9 @@
                             <ItemsControl ItemsSource="{Binding AnnotationLayers}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" Margin="0,0,0,4" />
+                                        <CheckBox IsChecked="{Binding IsSelected}" Margin="0,0,0,4">
+                                            <TextBlock Text="{Binding Name}" />
+                                        </CheckBox>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -414,6 +413,7 @@
             <GroupBox Header="{x:Static res:Strings.Common_Progress}" Margin="0,10,0,0">
                 <TextBox Margin="6"
                          MinHeight="120"
+                         MaxHeight="300"
                          IsReadOnly="True"
                          AcceptsReturn="True"
                          TextWrapping="Wrap"

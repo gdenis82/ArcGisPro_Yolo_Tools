@@ -1584,7 +1584,7 @@ namespace ArcGisProAppYolo.DockPanes
                         Name = name,
                         IsSelected = selectedNames.Contains(name)
                     };
-                    item.PropertyChanged += (_, __) =>
+                    item.PropertyChanged += (sender, e) =>
                     {
                         NotifyPropertyChanged(nameof(IsRunEnabled));
                         NotifyPropertyChanged(nameof(SelectedAnnotationLayersSummary));
