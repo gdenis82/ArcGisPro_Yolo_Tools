@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute name="xml:space" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ===== Common ===== -->
+  <data name="Common_Run" xml:space="preserve"><value>Запуск</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Отмена</value></data>
+  <data name="Common_Browse" xml:space="preserve"><value>Обзор...</value></data>
+  <data name="Common_Reset" xml:space="preserve"><value>Сброс</value></data>
+  <data name="Common_Progress" xml:space="preserve"><value>Прогресс</value></data>
+  <data name="Common_RefreshTooltip" xml:space="preserve"><value>Обновить список.</value></data>
+  <data name="Common_OperationCancelledByUser" xml:space="preserve"><value>Операция отменена пользователем.</value></data>
+  <data name="Common_OperationCancelled" xml:space="preserve"><value>Операция отменена.</value></data>
+  <data name="Common_Preparing" xml:space="preserve"><value>Подготовка...</value></data>
+  <data name="Common_Cancelling" xml:space="preserve"><value>Отмена...</value></data>
+
+  <!-- ===== Yolo DockPane ===== -->
+  <data name="Yolo_OrthoSelection" xml:space="preserve"><value>Выбор ортофото</value></data>
+  <data name="Yolo_SelectOrtho" xml:space="preserve"><value>Выберите ортофото:</value></data>
+  <data name="Yolo_SelectOrthoTooltip" xml:space="preserve"><value>Выберите ортофотоплан для обработки.</value></data>
+  <data name="Yolo_OrthoListTooltip" xml:space="preserve"><value>Список доступных ортофотопланов проекта.</value></data>
+  <data name="Yolo_RefreshOrthoTooltip" xml:space="preserve"><value>Обновить список ортофото.</value></data>
+  <data name="Yolo_AvailableFormat" xml:space="preserve"><value>Доступно: {0} элемент(ов)</value></data>
+  <data name="Yolo_ModelConfiguration" xml:space="preserve"><value>Конфигурация модели</value></data>
+  <data name="Yolo_BrowseModelTooltip" xml:space="preserve"><value>Выбрать файл модели (.pt/.onnx).</value></data>
+  <data name="Yolo_TileSettings" xml:space="preserve"><value>Настройки тайлов</value></data>
+  <data name="Yolo_TileSize" xml:space="preserve"><value>Размер тайла:</value></data>
+  <data name="Yolo_TileSizeTooltip" xml:space="preserve"><value>Размер тайла в пикселях.</value></data>
+  <data name="Yolo_TileSizeValueTooltip" xml:space="preserve"><value>Чем больше тайл, тем выше потребление памяти.</value></data>
+  <data name="Yolo_OverlapPercent" xml:space="preserve"><value>Перекрытие (%):</value></data>
+  <data name="Yolo_OverlapTooltip" xml:space="preserve"><value>Перекрытие соседних тайлов в процентах.</value></data>
+  <data name="Yolo_OverlapValueTooltip" xml:space="preserve"><value>Больше overlap уменьшает пропуски на границах.</value></data>
+  <data name="Yolo_DetectionSettings" xml:space="preserve"><value>Настройки детекции</value></data>
+  <data name="Yolo_Confidence" xml:space="preserve"><value>Уверенность:</value></data>
+  <data name="Yolo_ConfidenceTooltip" xml:space="preserve"><value>Порог уверенности модели (0..1).</value></data>
+  <data name="Yolo_ConfidenceValueTooltip" xml:space="preserve"><value>Ниже порога объекты отбрасываются.</value></data>
+  <data name="Yolo_OutputPoints" xml:space="preserve"><value>Точки центров</value></data>
+  <data name="Yolo_OutputPointsTooltip" xml:space="preserve"><value>Создать слой точек центров объектов.</value></data>
+  <data name="Yolo_OutputMasks" xml:space="preserve"><value>Маски</value></data>
+  <data name="Yolo_OutputMasksTooltip" xml:space="preserve"><value>Создать слой полигонов масок.</value></data>
+  <data name="Yolo_OutputBoxes" xml:space="preserve"><value>Прямоугольники</value></data>
+  <data name="Yolo_OutputBoxesTooltip" xml:space="preserve"><value>Создать слой ограничивающих прямоугольников.</value></data>
+  <data name="Yolo_OutputOBB" xml:space="preserve"><value>Ориентированные прямоугольники</value></data>
+  <data name="Yolo_OutputOBBTooltip" xml:space="preserve"><value>Создать слой ориентированных ограничивающих прямоугольников.</value></data>
+  <data name="Yolo_UseSahi" xml:space="preserve"><value>Использовать SAHI</value></data>
+  <data name="Yolo_UseSahiTooltip" xml:space="preserve"><value>Оставлено для совместимости; используется SAHI.</value></data>
+  <data name="Yolo_MaskMode" xml:space="preserve"><value>Режим маски</value></data>
+  <data name="Yolo_MaskModeTooltip" xml:space="preserve"><value>Как формировать маску при нескольких контурах.</value></data>
+  <data name="Yolo_MaskModeLargest" xml:space="preserve"><value>Наибольший</value></data>
+  <data name="Yolo_MaskModeLargestTooltip" xml:space="preserve"><value>Оставить только самый большой контур (1 маска = 1 объект).</value></data>
+  <data name="Yolo_MaskModeUnion" xml:space="preserve"><value>Объединение</value></data>
+  <data name="Yolo_MaskModeUnionTooltip" xml:space="preserve"><value>Объединить все контуры в одну геометрию.</value></data>
+  <data name="Yolo_RunDetection" xml:space="preserve"><value>Запустить детекцию</value></data>
+  <data name="Yolo_RunButtonTooltip" xml:space="preserve"><value>Запуск детекции. Во время выполнения кнопка переключится в Отмена.</value></data>
+  <data name="Yolo_ProgressTooltip" xml:space="preserve"><value>Полный построчный лог выполнения. Можно выделять и копировать.</value></data>
+
+  <!-- Yolo runtime messages -->
+  <data name="Yolo_ProjectOrOrthoNotSelected" xml:space="preserve"><value>Проект или ортофото не выбраны.</value></data>
+  <data name="Yolo_OrthoImageNotFound" xml:space="preserve"><value>Ортофото не найдено в выбранном ортофотоплане.</value></data>
+  <data name="Yolo_PreparingTilesFolder" xml:space="preserve"><value>Подготовка папки тайлов...</value></data>
+  <data name="Yolo_TilesExistMessage" xml:space="preserve"><value>Тайлы для размера {0}px уже существуют. Использовать существующие?
+
+Да — использовать существующие
+Нет — сформировать заново
+Отмена — прервать операцию</value></data>
+  <data name="Yolo_TilesExistTitle" xml:space="preserve"><value>Тайлы уже существуют</value></data>
+  <data name="Yolo_GeneratingTiles" xml:space="preserve"><value>Генерация тайлов (может занять время)...</value></data>
+  <data name="Yolo_UsingExistingTiles" xml:space="preserve"><value>Используются существующие тайлы.</value></data>
+  <data name="Yolo_TilesCompleted" xml:space="preserve"><value>Генерация тайлов завершена.</value></data>
+  <data name="Yolo_RunningPredictions" xml:space="preserve"><value>Запуск предсказаний...</value></data>
+  <data name="Yolo_ModelNotFound" xml:space="preserve"><value>Файл модели не указан или не найден.</value></data>
+  <data name="Yolo_PredictionsCompleted" xml:space="preserve"><value>Предсказания завершены.</value></data>
+  <data name="Yolo_PredictionsFailed" xml:space="preserve"><value>Предсказания не удались (код выхода {0}). Смотрите логи.</value></data>
+  <data name="Yolo_PredictModuleNotFound" xml:space="preserve"><value>predict_module.py не найден; предсказания пропущены.</value></data>
+  <data name="Yolo_TilesGenerationFailed" xml:space="preserve"><value>Генерация тайлов не удалась. Смотрите логи в папке Tiles.</value></data>
+  <data name="Yolo_FailedRecreateTilesFolder" xml:space="preserve"><value>Не удалось пересоздать папку тайлов: {0}</value></data>
+  <data name="Yolo_ErrorGeneric" xml:space="preserve"><value>Ошибка: {0}</value></data>
+
+  <!-- ===== Dataset DockPane ===== -->
+  <data name="Dataset_OrthoSelection" xml:space="preserve"><value>Выбор ортофото</value></data>
+  <data name="Dataset_OrthoTooltip" xml:space="preserve"><value>Выбор ОФП из текущего проекта ArcGIS Pro.</value></data>
+  <data name="Dataset_RefreshOrthoTooltip" xml:space="preserve"><value>Обновить список ОФП.</value></data>
+  <data name="Dataset_AvailableFormat" xml:space="preserve"><value>Доступно: {0}</value></data>
+  <data name="Dataset_AnnotationLayers" xml:space="preserve"><value>Слои аннотаций</value></data>
+  <data name="Dataset_AnnotationLayersFilter" xml:space="preserve"><value>Показываются только слои, в имени которых есть 'train'.</value></data>
+  <data name="Dataset_AnnotationLayersFilterTooltip" xml:space="preserve"><value>Фильтр слоёв: имя слоя содержит train.</value></data>
+  <data name="Dataset_RefreshAnnotationTooltip" xml:space="preserve"><value>Обновить список (только слои с train в имени).</value></data>
+  <data name="Dataset_SlicingParameters" xml:space="preserve"><value>Параметры нарезки</value></data>
+  <data name="Dataset_TileSizePx" xml:space="preserve"><value>Размер тайла (px):</value></data>
+  <data name="Dataset_TileSizeTooltip" xml:space="preserve"><value>Рекомендуемый диапазон 64..2048.</value></data>
+  <data name="Dataset_Overlap" xml:space="preserve"><value>Перекрытие (0..0.9):</value></data>
+  <data name="Dataset_OverlapTooltip" xml:space="preserve"><value>Например 0.2 = 20%.</value></data>
+  <data name="Dataset_DatasetType" xml:space="preserve"><value>Тип датасета</value></data>
+  <data name="Dataset_DatasetTypeTooltip" xml:space="preserve"><value>Формат аннотаций в стиле Ultralytics YOLO.</value></data>
+  <data name="Dataset_SplitHeader" xml:space="preserve"><value>Разделение Train / Val / Test</value></data>
+  <data name="Dataset_BackgroundHeader" xml:space="preserve"><value>Фон / Баланс классов / Отладка</value></data>
+  <data name="Dataset_BackgroundLimit" xml:space="preserve"><value>Лимит фона:</value></data>
+  <data name="Dataset_Percent" xml:space="preserve"><value>Процент</value></data>
+  <data name="Dataset_EnableClassBalancing" xml:space="preserve"><value>Балансировка классов</value></data>
+  <data name="Dataset_EnableClassBalancingTooltip" xml:space="preserve"><value>Балансировка классов для Train/Val.</value></data>
+  <data name="Dataset_BalancingMethod" xml:space="preserve"><value>Метод балансировки:</value></data>
+  <data name="Dataset_DebugMode" xml:space="preserve"><value>Режим отладки</value></data>
+  <data name="Dataset_DebugModeTooltip" xml:space="preserve"><value>Сохранять визуализации и доп. артефакты отладки.</value></data>
+  <data name="Dataset_DataAugmentation" xml:space="preserve"><value>Аугментация данных</value></data>
+  <data name="Dataset_Seed" xml:space="preserve"><value>Seed:</value></data>
+  <data name="Dataset_SeedTooltip" xml:space="preserve"><value>Фиксированный seed для воспроизводимости.</value></data>
+  <data name="Dataset_ApplyToVal" xml:space="preserve"><value>Применить к Val</value></data>
+  <data name="Dataset_ApplyToValTooltip" xml:space="preserve"><value>Если включено: аугментация применяется также к split valid (валидация). Обычно оставляют выключенным, чтобы метрики отражали качество на 'чистых' данных.</value></data>
+  <data name="Dataset_ApplyToTest" xml:space="preserve"><value>Применить к Test</value></data>
+  <data name="Dataset_ApplyToTestTooltip" xml:space="preserve"><value>Если включено: аугментация применяется также к split test. Рекомендуется выключать для объективного финального теста модели.</value></data>
+  <data name="Dataset_TabGeometry" xml:space="preserve"><value>📐 Геометрия</value></data>
+  <data name="Dataset_TabColor" xml:space="preserve"><value>🎨 Цвет</value></data>
+  <data name="Dataset_TabNoiseBlur" xml:space="preserve"><value>🌫️ Шум и размытие</value></data>
+  <data name="Dataset_TabAdvanced" xml:space="preserve"><value>⚡ Продвинутые</value></data>
+  <data name="Dataset_TabPreview" xml:space="preserve"><value>👁️ Предпросмотр</value></data>
+  <data name="Dataset_TabPresets" xml:space="preserve"><value>💾 Пресеты</value></data>
+  <data name="Dataset_AugmentationEnableTooltip" xml:space="preserve"><value>Включить/отключить аугментацию.</value></data>
+  <data name="Dataset_RecommendationFormat" xml:space="preserve"><value>Рекомендация: {0}</value></data>
+  <data name="Dataset_Range" xml:space="preserve"><value>Диапазон:</value></data>
+  <data name="Dataset_RangeLowerTooltip" xml:space="preserve"><value>Нижняя граница диапазона.</value></data>
+  <data name="Dataset_DecrementLowerTooltip" xml:space="preserve"><value>Уменьшить нижний порог.</value></data>
+  <data name="Dataset_IncrementLowerTooltip" xml:space="preserve"><value>Увеличить нижний порог.</value></data>
+  <data name="Dataset_RangeUpperTooltip" xml:space="preserve"><value>Верхняя граница диапазона.</value></data>
+  <data name="Dataset_DecrementUpperTooltip" xml:space="preserve"><value>Уменьшить верхний порог.</value></data>
+  <data name="Dataset_IncrementUpperTooltip" xml:space="preserve"><value>Увеличить верхний порог.</value></data>
+  <data name="Dataset_Probability" xml:space="preserve"><value>Вероятность:</value></data>
+  <data name="Dataset_ProbabilityTooltip" xml:space="preserve"><value>Вероятность применения (0..1).</value></data>
+  <data name="Dataset_DecrementProbTooltip" xml:space="preserve"><value>Уменьшить вероятность.</value></data>
+  <data name="Dataset_IncrementProbTooltip" xml:space="preserve"><value>Увеличить вероятность.</value></data>
+  <data name="Dataset_MinProbTooltip" xml:space="preserve"><value>Минимально допустимая вероятность.</value></data>
+  <data name="Dataset_MaxProbTooltip" xml:space="preserve"><value>Максимально допустимая вероятность.</value></data>
+  <data name="Dataset_ResetTooltip" xml:space="preserve"><value>Сброс к значениям по умолчанию.</value></data>
+  <data name="Dataset_TilesFolder" xml:space="preserve"><value>Папка тайлов:</value></data>
+  <data name="Dataset_TilesFolderTooltip" xml:space="preserve"><value>Путь к папке с тайлами для превью.</value></data>
+  <data name="Dataset_BrowsePreviewTooltip" xml:space="preserve"><value>Выбрать папку с тайлами для превью.</value></data>
+  <data name="Dataset_ApplyNextTransform" xml:space="preserve"><value>Следующая трансформация</value></data>
+  <data name="Dataset_ApplyNextTransformTooltip" xml:space="preserve"><value>Применить следующую трансформацию (по кругу) к текущему изображению.</value></data>
+  <data name="Dataset_ApplySelected" xml:space="preserve"><value>Применить выбранную:</value></data>
+  <data name="Dataset_ApplySelectedTooltip" xml:space="preserve"><value>Выберите включённую трансформацию, чтобы сразу применить её к текущему тайлу.</value></data>
+  <data name="Dataset_ApplyingTransform" xml:space="preserve"><value>Применение трансформации...</value></data>
+  <data name="Dataset_CurrentTile" xml:space="preserve"><value>Текущий тайл:</value></data>
+  <data name="Dataset_CurrentTileTooltip" xml:space="preserve"><value>Текущий файл тайла для превью.</value></data>
+  <data name="Dataset_PrevImageTooltip" xml:space="preserve"><value>Предыдущее изображение</value></data>
+  <data name="Dataset_NextImageTooltip" xml:space="preserve"><value>Следующее изображение</value></data>
+  <data name="Dataset_PreviewInstructions" xml:space="preserve"><value>Выберите папку с тайлами: загрузится первое изображение. Кнопками ←/→ переключайте изображения. По кнопке «Следующая трансформация» применяется одна следующая включённая трансформация.</value></data>
+  <data name="Dataset_Applied" xml:space="preserve"><value>Применено:</value></data>
+  <data name="Dataset_BuiltInPresets" xml:space="preserve"><value>Встроенные пресеты:</value></data>
+  <data name="Dataset_PresetsDescription" xml:space="preserve"><value>Пресет — это готовый набор включённых аугментаций, их диапазонов и вероятностей. Используйте как стартовую точку, затем подстраивайте под ваш датасет.</value></data>
+  <data name="Dataset_PresetNoneTooltip" xml:space="preserve"><value>Отключить все аугментации и вернуть дефолтные значения.</value></data>
+  <data name="Dataset_PresetLightTooltip" xml:space="preserve"><value>Лёгкие и безопасные аугментации: минимальные геометрические/цветовые изменения.</value></data>
+  <data name="Dataset_PresetStandardTooltip" xml:space="preserve"><value>Сбалансированный набор для большинства задач детекции/сегментации.</value></data>
+  <data name="Dataset_PresetAggressiveTooltip" xml:space="preserve"><value>Максимально сильные аугментации. Используйте осторожно и проверяйте деградацию качества.</value></data>
+  <data name="Dataset_PresetOutdoorAerialTooltip" xml:space="preserve"><value>Набор под уличные/аэрофото сцены: тени, туман, локальный контраст.</value></data>
+  <data name="Dataset_SavePreset" xml:space="preserve"><value>Сохранить пресет (.json)</value></data>
+  <data name="Dataset_SavePresetTooltip" xml:space="preserve"><value>Сохранить текущие настройки аугментаций (включая диапазоны и вероятности) в JSON файл для повторного использования.</value></data>
+  <data name="Dataset_LoadPreset" xml:space="preserve"><value>Загрузить пресет (.json)</value></data>
+  <data name="Dataset_LoadPresetTooltip" xml:space="preserve"><value>Загрузить ранее сохранённый JSON preset и применить его к текущей панели.</value></data>
+  <data name="Dataset_ExportHyp" xml:space="preserve"><value>Экспорт hyp.yaml</value></data>
+  <data name="Dataset_ExportHypTooltip" xml:space="preserve"><value>Экспорт параметров в формат hyp.yaml для Ultralytics YOLO (удобно для CLI-тренировок).</value></data>
+  <data name="Dataset_Summary" xml:space="preserve"><value>Сводка</value></data>
+  <data name="Dataset_EstimatedSourceImages" xml:space="preserve"><value>Оценка исходных изображений:</value></data>
+  <data name="Dataset_DatasetMultiplierFormat" xml:space="preserve"><value>Множитель датасета: ×{0}</value></data>
+  <data name="Dataset_EstimatedTotalFormat" xml:space="preserve"><value>Оценка общего числа изображений: {0}</value></data>
+  <data name="Dataset_EstimatedTimeFormat" xml:space="preserve"><value>Оценка времени генерации: {0}</value></data>
+  <data name="Dataset_RunTooltip" xml:space="preserve"><value>Запустить формирование датасета.</value></data>
+  <data name="Dataset_CreateDataset" xml:space="preserve"><value>Создать датасет</value></data>
+  <data name="Dataset_Running" xml:space="preserve"><value>Выполняется...</value></data>
+
+  <!-- Dataset runtime messages -->
+  <data name="Dataset_TilesExistMessage" xml:space="preserve"><value>Тайлы для размера {0}px уже существуют. Использовать существующие?
+
+Да — использовать существующие
+Нет — сформировать заново
+Отмена — прервать операцию</value></data>
+  <data name="Dataset_TilesExistTitle" xml:space="preserve"><value>Тайлы уже существуют</value></data>
+  <data name="Dataset_OrthoNotFound" xml:space="preserve"><value>Исходное ортофото не найдено в Products/Orthos.</value></data>
+
+  <!-- ===== Config.daml ===== -->
+  <data name="Daml_GroupCaption" xml:space="preserve"><value>YOLO Инструмент</value></data>
+  <data name="Daml_DetectionCaption" xml:space="preserve"><value>Детекция</value></data>
+  <data name="Daml_CreateDatasetCaption" xml:space="preserve"><value>Создать датасет</value></data>
+  <data name="Daml_YoloDetectionCaption" xml:space="preserve"><value>YOLO Детекция</value></data>
+</root>

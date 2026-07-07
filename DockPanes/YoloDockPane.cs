@@ -339,7 +339,7 @@ namespace ArcGisProAppYolo.DockPanes
             }
         }
 
-        public string RunButtonText => IsRunning ? "Cancel" : "Run Detection";
+        public string RunButtonText => IsRunning ? Resources.Strings.Common_Cancel : Resources.Strings.Yolo_RunDetection;
 
         private string _progressText = string.Empty;
         public string ProgressText 
@@ -417,7 +417,7 @@ namespace ArcGisProAppYolo.DockPanes
                     return;
 
                 Tools.Logger.Log("INFO: Cancellation requested by user.");
-                ProgressText = "Cancelling...";
+                ProgressText = Resources.Strings.Common_Cancelling;
                 cts.Cancel();
             }
             catch (Exception ex)
@@ -441,7 +441,7 @@ namespace ArcGisProAppYolo.DockPanes
             var cancellationToken = _runCts.Token;
 
             IsRunning = true;
-            ResetProgressLog("Preparing...");
+            ResetProgressLog(Resources.Strings.Common_Preparing);
 
             try
             {
@@ -450,7 +450,7 @@ namespace ArcGisProAppYolo.DockPanes
                 string projectUri = Project.Current?.URI ?? string.Empty;
                 if (string.IsNullOrEmpty(projectUri) || string.IsNullOrEmpty(SelectedOrtho))
                 {
-                    AppendProgressLine("Project or Ortho not selected.");
+                    AppendProgressLine(Resources.Strings.Yolo_ProjectOrOrthoNotSelected);
                     return;
                 }
 
@@ -485,11 +485,11 @@ namespace ArcGisProAppYolo.DockPanes
 
                 if (string.IsNullOrEmpty(orthoImagePath) || !File.Exists(orthoImagePath))
                 {
-                    AppendProgressLine("Ortho image not found in selected Ortho.");
+                    AppendProgressLine(Resources.Strings.Yolo_OrthoImageNotFound);
                     return;
                 }
 
-                AppendProgressLine("Preparing Tiles folder...");
+                AppendProgressLine(Resources.Strings.Yolo_PreparingTilesFolder);
                 // SelectedOrtho - это папка ортофотоплана как есть
                 var eomwFolder = Path.Combine(projectDir, "OrthoMapping", SelectedOrtho);
                 Tools.Logger.Log($"EOMW folder: {eomwFolder}");
@@ -505,14 +505,14 @@ namespace ArcGisProAppYolo.DockPanes
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var answer = MessageBox.Show(
-                        $"Тайлы для размера {TileSize}px уже существуют. Использовать существующие?\n\nДа — использовать существующие\nНет — сформировать заново\nОтмена — прервать операцию",
-                        "Тайлы уже существуют",
+                        string.Format(Resources.Strings.Yolo_TilesExistMessage, TileSize),
+                        Resources.Strings.Yolo_TilesExistTitle,
                         MessageBoxButton.YesNoCancel,
                         MessageBoxImage.Question);
 
                     if (answer == MessageBoxResult.Cancel)
                     {
-                        AppendProgressLine("Операция отменена пользователем.");
+                        AppendProgressLine(Resources.Strings.Common_OperationCancelledByUser);
                         return;
                     }
 
@@ -531,7 +531,7 @@ namespace ArcGisProAppYolo.DockPanes
                         }
                         catch (Exception ex)
                         {
-                            AppendProgressLine($"Failed to recreate tiles folder: {ex.Message}");
+                            AppendProgressLine(string.Format(Resources.Strings.Yolo_FailedRecreateTilesFolder, ex.Message));
                             Tools.Logger.Log($"Failed to recreate tiles folder: {ex}");
                             return;
                         }
@@ -542,19 +542,19 @@ namespace ArcGisProAppYolo.DockPanes
                 if (!useExistingTiles)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    AppendProgressLine("Generating tiles (this may take a while)...");
+                    AppendProgressLine(Resources.Strings.Yolo_GeneratingTiles);
                     ok = await Tools.TileGenerator.GenerateTilesAsync(orthoImagePath, tilesRoot, TileSize, OverlapPercent, cancellationToken);
                 }
                 else
                 {
-                    AppendProgressLine("Using existing tiles.");
+                    AppendProgressLine(Resources.Strings.Yolo_UsingExistingTiles);
                 }
 
                 if (ok)
                 {
-                    AppendProgressLine("Tiles generation completed.");
+                    AppendProgressLine(Resources.Strings.Yolo_TilesCompleted);
 
-                    AppendProgressLine("Running predictions...");
+                    AppendProgressLine(Resources.Strings.Yolo_RunningPredictions);
 
                     string predictScript = null;
                     var projectRoot = Path.GetDirectoryName(Project.Current?.URI ?? string.Empty);
@@ -593,7 +593,7 @@ namespace ArcGisProAppYolo.DockPanes
                         // Ensure model path exists
                         if (string.IsNullOrEmpty(ModelPath) || !File.Exists(ModelPath))
                         {
-                            AppendProgressLine("Model file not specified or not found.");
+                            AppendProgressLine(Resources.Strings.Yolo_ModelNotFound);
                             Tools.Logger.Log($"ModelPath invalid: {ModelPath}");
                         }
                         else
@@ -642,38 +642,38 @@ namespace ArcGisProAppYolo.DockPanes
                                     ? experimentDir
                                     : Path.Combine(eomwFolder, "Detection_Results");
                                 Tools.Logger.Log($"Detection results folder: {detectionFolder}");
-                                AppendProgressLine("Predictions completed.");
+                                AppendProgressLine(Resources.Strings.Yolo_PredictionsCompleted);
                             }
                             else if (exit == -2)
                             {
-                                AppendProgressLine("Operation cancelled.");
+                                AppendProgressLine(Resources.Strings.Common_OperationCancelled);
                                 Tools.Logger.Log("INFO: Prediction process cancelled by user.");
                             }
                             else
                             {
-                                AppendProgressLine($"Predictions failed (exit {exit}). See logs.");
+                                AppendProgressLine(string.Format(Resources.Strings.Yolo_PredictionsFailed, exit));
                             }
                         }
 
                     }
                     else
                     {
-                        AppendProgressLine("predict_module.py not found; skipping predictions.");
+                        AppendProgressLine(Resources.Strings.Yolo_PredictModuleNotFound);
                     }
                 }
                 else
                 {
-                    AppendProgressLine("Tiles generation failed. See logs in Tiles folder.");
+                    AppendProgressLine(Resources.Strings.Yolo_TilesGenerationFailed);
                 }
             }
             catch (OperationCanceledException)
             {
-                AppendProgressLine("Operation cancelled.");
+                AppendProgressLine(Resources.Strings.Common_OperationCancelled);
                 Tools.Logger.Log("INFO: RunDetection operation cancelled.");
             }
             catch (Exception ex)
             {
-                AppendProgressLine($"Error: {ex.Message}");
+                AppendProgressLine(string.Format(Resources.Strings.Yolo_ErrorGeneric, ex.Message));
                 Tools.Logger.Log($"Error in RunAsync: {ex}");
             }
             finally

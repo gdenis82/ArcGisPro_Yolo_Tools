@@ -399,7 +399,7 @@ namespace ArcGisProAppYolo.DockPanes
             }
         }
 
-        public string RunButtonText => IsRunning ? "Running..." : "Create Dataset";
+        public string RunButtonText => IsRunning ? Resources.Strings.Dataset_Running : Resources.Strings.Dataset_CreateDataset;
 
         public bool IsPreviewApplying
         {
@@ -1364,7 +1364,7 @@ namespace ArcGisProAppYolo.DockPanes
                 var orthoImagePath = ResolveOrthoImagePath(orthoFolder);
                 if (string.IsNullOrWhiteSpace(orthoImagePath) || !File.Exists(orthoImagePath))
                 {
-                    AppendProgressLine("ERROR: Source ortho image not found in Products/Orthos.");
+                    AppendProgressLine("ERROR: " + Resources.Strings.Dataset_OrthoNotFound);
                     return;
                 }
 
@@ -1373,14 +1373,14 @@ namespace ArcGisProAppYolo.DockPanes
                 if (HasExistingTiles(imagesFolder))
                 {
                     var answer = MessageBox.Show(
-                        $"Тайлы для размера {TileSize}px уже существуют. Использовать существующие?\n\nДа — использовать существующие\nНет — сформировать заново\nОтмена — прервать операцию",
-                        "Тайлы уже существуют",
+                        string.Format(Resources.Strings.Dataset_TilesExistMessage, TileSize),
+                        Resources.Strings.Dataset_TilesExistTitle,
                         MessageBoxButton.YesNoCancel,
                         MessageBoxImage.Question);
 
                     if (answer == MessageBoxResult.Cancel)
                     {
-                        AppendProgressLine("Операция отменена пользователем.");
+                        AppendProgressLine(Resources.Strings.Common_OperationCancelledByUser);
                         return;
                     }
 

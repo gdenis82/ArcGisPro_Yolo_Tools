@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:res="clr-namespace:ArcGisProAppYolo.Resources"
              mc:Ignorable="d"
              d:DesignHeight="900"
              d:DesignWidth="450">
@@ -23,14 +24,14 @@
             <DataTemplate x:Key="AugmentationTemplate">
                 <Border Margin="0,0,0,8" Padding="6" BorderBrush="#22000000" BorderThickness="1" CornerRadius="4">
                     <StackPanel>
-                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsEnabled}" ToolTip="Включить/отключить аугментацию." />
+                        <CheckBox Content="{Binding Name}" IsChecked="{Binding IsEnabled}" ToolTip="{x:Static res:Strings.Dataset_AugmentationEnableTooltip}" />
 
                         <TextBlock Margin="0,4,0,0"
                                    Text="{Binding Description}"
                                    Foreground="#555"
                                    TextWrapping="Wrap" />
                         <TextBlock Margin="0,2,0,0"
-                                   Text="{Binding Recommendation, StringFormat=Рекомендация: {0}}"
+                                   Text="{Binding Recommendation, StringFormat={x:Static res:Strings.Dataset_RecommendationFormat}}"
                                    Foreground="#2F6F9F"
                                    FontStyle="Italic"
                                    TextWrapping="Wrap" />
@@ -46,20 +47,20 @@
                                 <ColumnDefinition Width="18" />
                                 <ColumnDefinition Width="18" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Диапазон:" />
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_Range}" />
                             <TextBox Grid.Column="1"
                                      Margin="8,0,0,0"
                                      Text="{Binding ValueMinText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Нижняя граница диапазона." />
-                            <Button Grid.Column="2" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementValueMinCommand}" ToolTip="Уменьшить нижний порог." />
-                            <Button Grid.Column="3" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementValueMinCommand}" ToolTip="Увеличить нижний порог." />
+                                     ToolTip="{x:Static res:Strings.Dataset_RangeLowerTooltip}" />
+                            <Button Grid.Column="2" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementValueMinCommand}" ToolTip="{x:Static res:Strings.Dataset_DecrementLowerTooltip}" />
+                            <Button Grid.Column="3" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementValueMinCommand}" ToolTip="{x:Static res:Strings.Dataset_IncrementLowerTooltip}" />
 
                             <TextBox Grid.Column="5"
                                      Margin="8,0,0,0"
                                      Text="{Binding ValueMaxText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Верхняя граница диапазона." />
-                            <Button Grid.Column="6" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementValueMaxCommand}" ToolTip="Уменьшить верхний порог." />
-                            <Button Grid.Column="7" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementValueMaxCommand}" ToolTip="Увеличить верхний порог." />
+                                     ToolTip="{x:Static res:Strings.Dataset_RangeUpperTooltip}" />
+                            <Button Grid.Column="6" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementValueMaxCommand}" ToolTip="{x:Static res:Strings.Dataset_DecrementUpperTooltip}" />
+                            <Button Grid.Column="7" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementValueMaxCommand}" ToolTip="{x:Static res:Strings.Dataset_IncrementUpperTooltip}" />
                         </Grid>
 
                         <Grid Margin="0,4,0,0" Visibility="{Binding ShowProbabilitySlider, Converter={StaticResource BoolToVisibility}}">
@@ -71,34 +72,34 @@
                                 <ColumnDefinition Width="70" />
                                 <ColumnDefinition Width="70" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Вероятность:" />
+                            <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_Probability}" />
                             <TextBox Grid.Column="1"
                                      Margin="8,0,0,0"
                                      Text="{Binding ProbabilityText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="Вероятность применения (0..1)." />
-                            <Button Grid.Column="2" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementProbabilityCommand}" ToolTip="Уменьшить вероятность." />
-                            <Button Grid.Column="3" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementProbabilityCommand}" ToolTip="Увеличить вероятность." />
+                                     ToolTip="{x:Static res:Strings.Dataset_ProbabilityTooltip}" />
+                            <Button Grid.Column="2" Margin="2,0,0,0" Padding="0" Content="-" Command="{Binding DecrementProbabilityCommand}" ToolTip="{x:Static res:Strings.Dataset_DecrementProbTooltip}" />
+                            <Button Grid.Column="3" Margin="2,0,0,0" Padding="0" Content="+" Command="{Binding IncrementProbabilityCommand}" ToolTip="{x:Static res:Strings.Dataset_IncrementProbTooltip}" />
                             <TextBlock Grid.Column="4"
                                        Margin="8,0,0,0"
                                        VerticalAlignment="Center"
                                        Foreground="#666"
                                        Text="{Binding MinProbability, StringFormat=min: {0:0.##}}"
-                                       ToolTip="Минимально допустимая вероятность." />
+                                       ToolTip="{x:Static res:Strings.Dataset_MinProbTooltip}" />
                             <TextBlock Grid.Column="5"
                                        Margin="8,0,0,0"
                                        VerticalAlignment="Center"
                                        Foreground="#666"
                                        Text="{Binding MaxProbability, StringFormat=max: {0:0.##}}"
-                                       ToolTip="Максимально допустимая вероятность." />
+                                       ToolTip="{x:Static res:Strings.Dataset_MaxProbTooltip}" />
                         </Grid>
 
-                        <Button Content="Reset"
+                        <Button Content="{x:Static res:Strings.Common_Reset}"
                                 Margin="0,6,0,0"
                                 Width="90"
                                 HorizontalAlignment="Left"
                                 Command="{Binding DataContext.ResetAugmentationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding}"
-                                ToolTip="Сброс к значениям по умолчанию." />
+                                ToolTip="{x:Static res:Strings.Dataset_ResetTooltip}" />
                     </StackPanel>
                 </Border>
             </DataTemplate>
@@ -107,7 +108,7 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="10">
-            <GroupBox Header="Ortho Selection" Margin="0,0,0,10">
+            <GroupBox Header="{x:Static res:Strings.Dataset_OrthoSelection}" Margin="0,0,0,10">
                 <StackPanel Margin="6">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -118,19 +119,19 @@
                                   ItemsSource="{Binding OrthoList}"
                                   SelectedItem="{Binding SelectedOrtho}"
                                   Margin="0,0,6,0"
-                                  ToolTip="Выбор ОФП из текущего проекта ArcGIS Pro." />
+                                  ToolTip="{x:Static res:Strings.Dataset_OrthoTooltip}" />
                         <Button Grid.Column="1"
                                 Content="⟳"
                                 Width="28"
                                 Height="28"
                                 Command="{Binding RefreshOrthoListCommand}"
-                                ToolTip="Обновить список ОФП." />
+                                ToolTip="{x:Static res:Strings.Dataset_RefreshOrthoTooltip}" />
                     </Grid>
-                    <TextBlock Margin="0,4,0,0" Foreground="Gray" Text="{Binding OrthoList.Count, StringFormat=Доступно: {0}}" />
+                    <TextBlock Margin="0,4,0,0" Foreground="Gray" Text="{Binding OrthoList.Count, StringFormat={x:Static res:Strings.Dataset_AvailableFormat}}" />
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Annotation Layers" Margin="0,0,0,10">
+            <GroupBox Header="{x:Static res:Strings.Dataset_AnnotationLayers}" Margin="0,0,0,10">
                 <StackPanel Margin="6">
                     <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
@@ -139,17 +140,17 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0"
                                    VerticalAlignment="Center"
-                                   Text="Показываются только слои, в имени которых есть 'train'."
+                                   Text="{x:Static res:Strings.Dataset_AnnotationLayersFilter}"
                                    TextWrapping="Wrap"
                                    Foreground="#555"
-                                   ToolTip="Фильтр слоёв: имя слоя содержит train." />
+                                   ToolTip="{x:Static res:Strings.Dataset_AnnotationLayersFilterTooltip}" />
                         <Button Grid.Column="1"
                                 Content="⟳"
                                 Width="28"
                                 Height="28"
                                 Margin="8,0,0,0"
                                 Command="{Binding RefreshAnnotationLayersCommand}"
-                                ToolTip="Обновить список (только слои с train в имени)." />
+                                ToolTip="{x:Static res:Strings.Dataset_RefreshAnnotationTooltip}" />
                     </Grid>
 
                     <Border BorderBrush="#22000000" BorderThickness="1" CornerRadius="4" Padding="6">
@@ -168,26 +169,26 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Slicing Parameters" Margin="0,0,0,10">
+            <GroupBox Header="{x:Static res:Strings.Dataset_SlicingParameters}" Margin="0,0,0,10">
                 <StackPanel Margin="6">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <TextBlock Width="140" VerticalAlignment="Center" Text="Tile Size (px):" />
-                        <TextBox Width="100" Text="{Binding TileSize, UpdateSourceTrigger=PropertyChanged}" ToolTip="Рекомендуемый диапазон 64..2048." />
+                        <TextBlock Width="140" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_TileSizePx}" />
+                        <TextBox Width="100" Text="{Binding TileSize, UpdateSourceTrigger=PropertyChanged}" ToolTip="{x:Static res:Strings.Dataset_TileSizeTooltip}" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Width="140" VerticalAlignment="Center" Text="Overlap (0..0.9):" />
-                        <TextBox Width="100" Text="{Binding Overlap, UpdateSourceTrigger=PropertyChanged}" ToolTip="Например 0.2 = 20%." />
+                        <TextBlock Width="140" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_Overlap}" />
+                        <TextBox Width="100" Text="{Binding Overlap, UpdateSourceTrigger=PropertyChanged}" ToolTip="{x:Static res:Strings.Dataset_OverlapTooltip}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Dataset Type" Margin="0,0,0,10">
+            <GroupBox Header="{x:Static res:Strings.Dataset_DatasetType}" Margin="0,0,0,10">
                 <StackPanel Margin="6">
-                    <ComboBox Margin="0,6,0,0" ItemsSource="{Binding DatasetTypes}" SelectedItem="{Binding SelectedDatasetType}" ToolTip="Формат аннотаций в стиле Ultralytics YOLO." />
+                    <ComboBox Margin="0,6,0,0" ItemsSource="{Binding DatasetTypes}" SelectedItem="{Binding SelectedDatasetType}" ToolTip="{x:Static res:Strings.Dataset_DatasetTypeTooltip}" />
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Train / Val / Test Split" Margin="0,0,0,10">
+            <GroupBox Header="{x:Static res:Strings.Dataset_SplitHeader}" Margin="0,0,0,10">
                 <StackPanel Margin="6">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -224,85 +225,85 @@
                 </StackPanel>
             </GroupBox>
 
-            <GroupBox Header="Background / Class Balance / Debug" Margin="0,0,0,10">
+            <GroupBox Header="{x:Static res:Strings.Dataset_BackgroundHeader}" Margin="0,0,0,10">
                 <StackPanel Margin="6">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <TextBlock Width="180" VerticalAlignment="Center" Text="Background limit:" />
+                        <TextBlock Width="180" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_BackgroundLimit}" />
                         <TextBox Width="70" Text="{Binding BackgroundLimit, UpdateSourceTrigger=PropertyChanged}" />
-                        <CheckBox Margin="10,0,0,0" VerticalAlignment="Center" Content="Percent" IsChecked="{Binding BackgroundLimitIsPercent}" />
+                        <CheckBox Margin="10,0,0,0" VerticalAlignment="Center" Content="{x:Static res:Strings.Dataset_Percent}" IsChecked="{Binding BackgroundLimitIsPercent}" />
                     </StackPanel>
 
-                    <CheckBox Content="Enable class balancing" IsChecked="{Binding EnableClassBalancing}" ToolTip="Балансировка классов для Train/Val." />
+                    <CheckBox Content="{x:Static res:Strings.Dataset_EnableClassBalancing}" IsChecked="{Binding EnableClassBalancing}" ToolTip="{x:Static res:Strings.Dataset_EnableClassBalancingTooltip}" />
                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                        <TextBlock Width="180" VerticalAlignment="Center" Text="Balancing method:" />
+                        <TextBlock Width="180" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_BalancingMethod}" />
                         <ComboBox Width="140" ItemsSource="{Binding BalanceMethods}" SelectedItem="{Binding SelectedBalanceMethod}" />
                     </StackPanel>
 
-                    <CheckBox Margin="0,8,0,0" Content="Debug Mode" IsChecked="{Binding DebugMode}" ToolTip="Сохранять визуализации и доп. артефакты отладки." />
+                    <CheckBox Margin="0,8,0,0" Content="{x:Static res:Strings.Dataset_DebugMode}" IsChecked="{Binding DebugMode}" ToolTip="{x:Static res:Strings.Dataset_DebugModeTooltip}" />
                 </StackPanel>
             </GroupBox>
 
-            <Expander Header="Data Augmentation" IsExpanded="{Binding IsAugmentationExpanded}" Margin="0,0,0,10">
+            <Expander Header="{x:Static res:Strings.Dataset_DataAugmentation}" IsExpanded="{Binding IsAugmentationExpanded}" Margin="0,0,0,10">
                 <StackPanel Margin="6">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                        <TextBlock VerticalAlignment="Center" Text="Seed:" Width="60" />
-                        <TextBox Width="120" Text="{Binding Seed, UpdateSourceTrigger=PropertyChanged}" ToolTip="Фиксированный seed для воспроизводимости." />
+                        <TextBlock VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_Seed}" Width="60" />
+                        <TextBox Width="120" Text="{Binding Seed, UpdateSourceTrigger=PropertyChanged}" ToolTip="{x:Static res:Strings.Dataset_SeedTooltip}" />
                         <CheckBox Margin="12,0,0,0"
                                   VerticalAlignment="Center"
-                                  Content="Apply to Val"
+                                  Content="{x:Static res:Strings.Dataset_ApplyToVal}"
                                   IsChecked="{Binding ApplyToVal}"
-                                  ToolTip="Если включено: аугментация применяется также к split valid (валидация). Обычно оставляют выключенным, чтобы метрики отражали качество на 'чистых' данных." />
+                                  ToolTip="{x:Static res:Strings.Dataset_ApplyToValTooltip}" />
                         <CheckBox Margin="8,0,0,0"
                                   VerticalAlignment="Center"
-                                  Content="Apply to Test"
+                                  Content="{x:Static res:Strings.Dataset_ApplyToTest}"
                                   IsChecked="{Binding ApplyToTest}"
-                                  ToolTip="Если включено: аугментация применяется также к split test. Рекомендуется выключать для объективного финального теста модели." />
+                                  ToolTip="{x:Static res:Strings.Dataset_ApplyToTestTooltip}" />
                     </StackPanel>
 
                     <TabControl>
-                        <TabItem Header="📐 Geometry">
+                        <TabItem Header="{x:Static res:Strings.Dataset_TabGeometry}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding GeometryAugmentations}" ItemTemplate="{StaticResource AugmentationTemplate}" />
                             </ScrollViewer>
                         </TabItem>
 
-                        <TabItem Header="🎨 Color">
+                        <TabItem Header="{x:Static res:Strings.Dataset_TabColor}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding ColorAugmentations}" ItemTemplate="{StaticResource AugmentationTemplate}" />
                             </ScrollViewer>
                         </TabItem>
 
-                        <TabItem Header="🌫️ Noise &amp; Blur">
+                        <TabItem Header="{x:Static res:Strings.Dataset_TabNoiseBlur}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding NoiseAugmentations}" ItemTemplate="{StaticResource AugmentationTemplate}" />
                             </ScrollViewer>
                         </TabItem>
 
-                        <TabItem Header="⚡ Advanced">
+                        <TabItem Header="{x:Static res:Strings.Dataset_TabAdvanced}">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding AdvancedAugmentations}" ItemTemplate="{StaticResource AugmentationTemplate}" />
                             </ScrollViewer>
                         </TabItem>
 
-                        <TabItem Header="👁️ Preview">
+                        <TabItem Header="{x:Static res:Strings.Dataset_TabPreview}">
                             <StackPanel Margin="6">
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Width="120" VerticalAlignment="Center" Text="Tiles folder:" />
-                                    <TextBox Width="220" Text="{Binding PreviewTilesFolder, UpdateSourceTrigger=PropertyChanged}" ToolTip="Путь к папке с тайлами для превью." />
-                                    <Button Margin="8,0,0,0" Content="Browse" Command="{Binding BrowsePreviewTilesFolderCommand}" ToolTip="Выбрать папку с тайлами для превью." />
+                                    <TextBlock Width="120" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_TilesFolder}" />
+                                    <TextBox Width="220" Text="{Binding PreviewTilesFolder, UpdateSourceTrigger=PropertyChanged}" ToolTip="{x:Static res:Strings.Dataset_TilesFolderTooltip}" />
+                                    <Button Margin="8,0,0,0" Content="{x:Static res:Strings.Common_Browse}" Command="{Binding BrowsePreviewTilesFolderCommand}" ToolTip="{x:Static res:Strings.Dataset_BrowsePreviewTooltip}" />
                                     <Button Margin="8,0,0,0"
-                                            Content="Apply Next Transform"
+                                            Content="{x:Static res:Strings.Dataset_ApplyNextTransform}"
                                             Command="{Binding ApplyRandomPreviewCommand}"
-                                            ToolTip="Применить следующую трансформацию (по кругу) к текущему изображению." />
+                                            ToolTip="{x:Static res:Strings.Dataset_ApplyNextTransformTooltip}" />
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Width="120" VerticalAlignment="Center" Text="Apply selected:" />
+                                    <TextBlock Width="120" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_ApplySelected}" />
                                     <ComboBox Width="220"
                                               ItemsSource="{Binding Source={StaticResource EnabledPreviewOperationsView}}"
                                               DisplayMemberPath="DisplayName"
                                               SelectedItem="{Binding SelectedPreviewOperation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              ToolTip="Выберите включённую трансформацию, чтобы сразу применить её к текущему тайлу.">
+                                              ToolTip="{x:Static res:Strings.Dataset_ApplySelectedTooltip}">
                                         <ComboBox.GroupStyle>
                                             <GroupStyle>
                                                 <GroupStyle.HeaderTemplate>
@@ -316,24 +317,24 @@
                                   <TextBlock VerticalAlignment="Center"
                                            Foreground="#2F6F9F"
                                            FontStyle="Italic"
-                                           Text="Applying transform..."
+                                           Text="{x:Static res:Strings.Dataset_ApplyingTransform}"
                                            Visibility="{Binding IsPreviewApplying, Converter={StaticResource BoolToVisibility}}" />
                                 </StackPanel>
 
                                 
 
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Width="120" VerticalAlignment="Center" Text="Current tile:" />
-                                    <TextBox Width="220" Text="{Binding PreviewTile, UpdateSourceTrigger=PropertyChanged}" ToolTip="Текущий файл тайла для превью." />
-                                    <Button Margin="8,0,0,0" Width="28" Content="←" Command="{Binding PreviewPrevImageCommand}" ToolTip="Предыдущее изображение" />
+                                    <TextBlock Width="120" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_CurrentTile}" />
+                                    <TextBox Width="220" Text="{Binding PreviewTile, UpdateSourceTrigger=PropertyChanged}" ToolTip="{x:Static res:Strings.Dataset_CurrentTileTooltip}" />
+                                    <Button Margin="8,0,0,0" Width="28" Content="←" Command="{Binding PreviewPrevImageCommand}" ToolTip="{x:Static res:Strings.Dataset_PrevImageTooltip}" />
                                     <TextBlock Margin="8,0,8,0" Width="70" VerticalAlignment="Center" TextAlignment="Center" Text="{Binding PreviewImagePosition}" />
-                                    <Button Width="28" Content="→" Command="{Binding PreviewNextImageCommand}" ToolTip="Следующее изображение" />
+                                    <Button Width="28" Content="→" Command="{Binding PreviewNextImageCommand}" ToolTip="{x:Static res:Strings.Dataset_NextImageTooltip}" />
                                 </StackPanel>
 
                                 <TextBlock Margin="0,0,0,8"
                                            Foreground="#555"
                                            TextWrapping="Wrap"
-                                           Text="Выберите папку с тайлами: загрузится первое изображение. Кнопками ←/→ переключайте изображения. По кнопке Apply Next Transform применяется одна следующая включённая трансформация." />
+                                           Text="{x:Static res:Strings.Dataset_PreviewInstructions}" />
 
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -348,54 +349,54 @@
                                     </Border>
                                 </Grid>
 
-                                <TextBlock Margin="0,8,0,0" Text="Applied:" FontWeight="Bold" />
+                                <TextBlock Margin="0,8,0,0" Text="{x:Static res:Strings.Dataset_Applied}" FontWeight="Bold" />
                                 <TextBlock Text="{Binding PreviewAppliedTransforms}" TextWrapping="Wrap" />
                             </StackPanel>
                         </TabItem>
 
-                        <TabItem Header="💾 Presets">
+                        <TabItem Header="{x:Static res:Strings.Dataset_TabPresets}">
                             <StackPanel Margin="6">
-                                <TextBlock Text="Built-in presets:" FontWeight="Bold" />
+                                <TextBlock Text="{x:Static res:Strings.Dataset_BuiltInPresets}" FontWeight="Bold" />
                                 <TextBlock Margin="0,4,0,0"
                                            Foreground="#555"
                                            TextWrapping="Wrap"
-                                           Text="Preset — это готовый набор включённых аугментаций, их диапазонов и вероятностей. Используйте как стартовую точку, затем подстраивайте под ваш датасет." />
+                                           Text="{x:Static res:Strings.Dataset_PresetsDescription}" />
                                 <WrapPanel Margin="0,6,0,0">
-                                    <Button Margin="0,0,6,6" Content="None" Command="{Binding ApplyPresetCommand}" CommandParameter="None" ToolTip="Отключить все аугментации и вернуть дефолтные значения." />
-                                    <Button Margin="0,0,6,6" Content="Light" Command="{Binding ApplyPresetCommand}" CommandParameter="Light" ToolTip="Лёгкие и безопасные аугментации: минимальные геометрические/цветовые изменения." />
-                                    <Button Margin="0,0,6,6" Content="Standard" Command="{Binding ApplyPresetCommand}" CommandParameter="Standard" ToolTip="Сбалансированный набор для большинства задач детекции/сегментации." />
-                                    <Button Margin="0,0,6,6" Content="Aggressive" Command="{Binding ApplyPresetCommand}" CommandParameter="Aggressive" ToolTip="Максимально сильные аугментации. Используйте осторожно и проверяйте деградацию качества." />
-                                    <Button Margin="0,0,6,6" Content="Outdoor Aerial" Command="{Binding ApplyPresetCommand}" CommandParameter="Outdoor Aerial" ToolTip="Набор под уличные/аэрофото сцены: тени, туман, локальный контраст." />
+                                    <Button Margin="0,0,6,6" Content="None" Command="{Binding ApplyPresetCommand}" CommandParameter="None" ToolTip="{x:Static res:Strings.Dataset_PresetNoneTooltip}" />
+                                    <Button Margin="0,0,6,6" Content="Light" Command="{Binding ApplyPresetCommand}" CommandParameter="Light" ToolTip="{x:Static res:Strings.Dataset_PresetLightTooltip}" />
+                                    <Button Margin="0,0,6,6" Content="Standard" Command="{Binding ApplyPresetCommand}" CommandParameter="Standard" ToolTip="{x:Static res:Strings.Dataset_PresetStandardTooltip}" />
+                                    <Button Margin="0,0,6,6" Content="Aggressive" Command="{Binding ApplyPresetCommand}" CommandParameter="Aggressive" ToolTip="{x:Static res:Strings.Dataset_PresetAggressiveTooltip}" />
+                                    <Button Margin="0,0,6,6" Content="Outdoor Aerial" Command="{Binding ApplyPresetCommand}" CommandParameter="Outdoor Aerial" ToolTip="{x:Static res:Strings.Dataset_PresetOutdoorAerialTooltip}" />
                                 </WrapPanel>
 
                                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <Button Content="Save preset (.json)"
+                                    <Button Content="{x:Static res:Strings.Dataset_SavePreset}"
                                             Command="{Binding SavePresetCommand}"
                                             Margin="0,0,6,0"
-                                            ToolTip="Сохранить текущие настройки аугментаций (включая диапазоны и вероятности) в JSON файл для повторного использования." />
-                                    <Button Content="Load preset (.json)"
+                                            ToolTip="{x:Static res:Strings.Dataset_SavePresetTooltip}" />
+                                    <Button Content="{x:Static res:Strings.Dataset_LoadPreset}"
                                             Command="{Binding LoadPresetCommand}"
-                                            ToolTip="Загрузить ранее сохранённый JSON preset и применить его к текущей панели." />
+                                            ToolTip="{x:Static res:Strings.Dataset_LoadPresetTooltip}" />
                                 </StackPanel>
 
                                 <Button Margin="0,8,0,0"
-                                        Content="Export hyp.yaml"
+                                        Content="{x:Static res:Strings.Dataset_ExportHyp}"
                                         Command="{Binding ExportHypCommand}"
                                         Width="160"
-                                        ToolTip="Экспорт параметров в формат hyp.yaml для Ultralytics YOLO (удобно для CLI-тренировок)." />
+                                        ToolTip="{x:Static res:Strings.Dataset_ExportHypTooltip}" />
                             </StackPanel>
                         </TabItem>
                     </TabControl>
 
-                    <GroupBox Header="Summary" Margin="0,10,0,0">
+                    <GroupBox Header="{x:Static res:Strings.Dataset_Summary}" Margin="0,10,0,0">
                         <StackPanel Margin="6">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                <TextBlock Width="210" VerticalAlignment="Center" Text="Estimated source images:" />
+                                <TextBlock Width="210" VerticalAlignment="Center" Text="{x:Static res:Strings.Dataset_EstimatedSourceImages}" />
                                 <TextBox Width="100" Text="{Binding EstimatedSourceTiles, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
-                            <TextBlock Text="{Binding DatasetMultiplier, StringFormat=Dataset multiplier: ×{0}}" />
-                            <TextBlock Margin="0,4,0,0" Text="{Binding EstimatedTotalAfterAugmentation, StringFormat=Estimated total images: {0}}" />
-                            <TextBlock Margin="0,4,0,0" Text="{Binding EstimatedGenerationTime, StringFormat=Estimated generation time: {0}}" />
+                            <TextBlock Text="{Binding DatasetMultiplier, StringFormat={x:Static res:Strings.Dataset_DatasetMultiplierFormat}}" />
+                            <TextBlock Margin="0,4,0,0" Text="{Binding EstimatedTotalAfterAugmentation, StringFormat={x:Static res:Strings.Dataset_EstimatedTotalFormat}}" />
+                            <TextBlock Margin="0,4,0,0" Text="{Binding EstimatedGenerationTime, StringFormat={x:Static res:Strings.Dataset_EstimatedTimeFormat}}" />
                             <TextBlock Margin="0,4,0,0" Foreground="#c97b00" TextWrapping="Wrap" Text="{Binding DatasetSizeWarning}" />
                         </StackPanel>
                     </GroupBox>
@@ -408,9 +409,9 @@
                     Content="{Binding RunButtonText}"
                     Command="{Binding RunCreateDatasetCommand}"
                     IsEnabled="{Binding IsRunEnabled}"
-                    ToolTip="Запустить формирование датасета." />
+                    ToolTip="{x:Static res:Strings.Dataset_RunTooltip}" />
 
-            <GroupBox Header="Progress" Margin="0,10,0,0">
+            <GroupBox Header="{x:Static res:Strings.Common_Progress}" Margin="0,10,0,0">
                 <TextBox Margin="6"
                          MinHeight="120"
                          IsReadOnly="True"
