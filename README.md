@@ -9,85 +9,92 @@
 
 ---
 
-## 📖 Описание проекта
+## 📖 Project Description
 
-**ArcGisProAppYolo** — это надстройка (Add-in) для **ArcGIS Pro 3.7**, которая интегрирует **Ultralytics YOLO (You Only Look Once)** object detection непосредственно в рабочую среду ArcGIS Pro. 
+**ArcGisProAppYolo** is an **ArcGIS Pro 3.7** add-in that integrates **Ultralytics YOLO (You Only Look Once)** object detection directly into the ArcGIS Pro workspace.
 
-Проект предоставляет удобный UI для:
-- ✂️ **Нарезки ортофотопланов на тайлы** с настраиваемым размером и overlap
-- 🤖 **Запуска детекции объектов** с использованием YOLO + SAHI (sliced inference + NMS)
-- 📊 **Автоматического импорта результатов** (точки, маски, bounding boxes, OBB) в виде shapefiles
-- 🗺️ **Интеграции результатов** в структуру проекта ArcGIS Pro
-- 🧪 **Создания обучающего датасета YOLO** (train/valid/test) с поддержкой Detection / Segmentation / OBB
-- 🔁 **Аугментации датасета** с пост-обработкой финального набора (ограничение background и балансировка классов)
+The project provides a convenient UI for:
+- ✂️ **Cutting orthophotos into tiles** with configurable size and overlap
+- 🤖 **Running object detection** with YOLO + SAHI (sliced inference + NMS)
+- 📊 **Automatically importing results** (points, masks, bounding boxes, OBB) as shapefiles
+- 🗺️ **Integrating results** into the ArcGIS Pro project structure
+- 🧪 **Creating YOLO training datasets** (train/valid/test) with Detection / Segmentation / OBB support
+- 🔁 **Augmenting datasets** with final set post-processing, including background limits and class balancing
 
-### 🎯 Цель проекта
-Упростить workflow детекции объектов на ортофотопланах для GIS-специалистов, позволяя выполнять весь процесс — от нарезки тайлов до визуализации результатов — внутри одной среды ArcGIS Pro.
+### 🎯 Project Goal
+
+The goal is to simplify object detection workflows for GIS specialists working with orthophotos, allowing the full process, from tile generation to result visualization, to run inside one ArcGIS Pro environment.
+
 ---
+
 ![](assets/Screenshot_2.png)
-## 🛠️ Технологический стек
+
+## 🛠️ Technology Stack
 
 ### Frontend (ArcGIS Pro Add-in)
+
 - **ArcGIS Pro SDK**: 3.7.0.1901
 - **.NET**: 10.0
 - **C#**: 12.0
-- **WPF**: для UI с MVVM паттерном
-- **XAML**: декларативное описание интерфейса
+- **WPF**: UI with the MVVM pattern
+- **XAML**: declarative UI markup
 
 ### Backend (Python Processing)
-- **Python**: 3.9+ (ArcGIS Pro Python environment)
-- **Ultralytics YOLO**: для object detection
-- **SAHI**: sliced prediction и постобработка (NMS)
-- **PyTorch**: бэкенд для нейронных сетей
-- **ArcPy**: для работы с геопространственными данными
 
-### Инструменты разработки
+- **Python**: 3.9+ (ArcGIS Pro Python environment)
+- **Ultralytics YOLO**: object detection
+- **SAHI**: sliced prediction and post-processing (NMS)
+- **PyTorch**: neural network backend
+- **ArcPy**: geospatial data processing
+
+### Development Tools
+
 - **Visual Studio 2026** (18.4.1+)
 - **ArcGIS Pro 3.7**
 - **PyCharm 2026**
-- **Git/GitHub**: контроль версий
-- **NuGet**: управление зависимостями .NET
+- **Git/GitHub**: version control
+- **NuGet**: .NET dependency management
 
 ---
 
-## 📁 Структура проекта
+## 📁 Project Structure
 
-```
+```text
 ArcGisProAppYolo/
-├── 📄 Config.daml                    # Конфигурация Add-in (DAML)
-├── 📄 Module1.cs                     # Главный модуль Add-in
+├── 📄 Config.daml                    # Add-in configuration (DAML)
+├── 📄 Module1.cs                     # Main add-in module
 │
-├── 📂 Controls/                      # UI элементы управления
-│   └── ShowYoloDock.cs              # Кнопка для открытия панели
+├── 📂 Controls/                      # UI controls
+│   └── ShowYoloDock.cs            # Button that opens the dock pane
 │
-├── 📂 DockPanes/                     # Панель инструментов (MVVM)
-│   ├── YoloDockPane.cs              # ViewModel (бизнес-логика)
-│   ├── YoloDockPaneView.xaml        # View (UI разметка)
-│   └── YoloDockPaneView.xaml.cs     # View code-behind
+├── 📂 DockPanes/                     # Tool panels (MVVM)
+│   ├── YoloDockPane.cs            # ViewModel (business logic)
+│   ├── YoloDockPaneView.xaml      # View (UI markup)
+│   └── YoloDockPaneView.xaml.cs   # View code-behind
 │
-├── 📂 Infrastructure/                # Вспомогательные классы
-│   └── RelayCommand.cs              # ICommand implementation
+├── 📂 Infrastructure/                # Helper classes
+│   └── RelayCommand.cs            # ICommand implementation
 │
-├── 📂 Tools/                         # Бизнес-логика
-│   ├── Logger.cs                    # Логирование
-│   ├── TileGenerator.cs             # Генерация тайлов
-│   ├── PythonRunner.cs              # Запуск Python скриптов
-│   └── ResultImporter.cs            # Импорт результатов
+├── 📂 Tools/                         # Business logic
+│   ├── Logger.cs                  # Logging
+│   ├── TileGenerator.cs           # Tile generation
+│   ├── PythonRunner.cs            # Python script runner
+│   └── ResultImporter.cs          # Result import
 │
-├── 📂 opp_yolo_tool/                 # Python модули
-│   ├── models.py                    # Определение моделей
-│   ├── utils.py                     # Вспомогательные функции
-│   ├── predict_module.py            # YOLO детекция
-│   ├── tile_generator.py            # Генерация тайлов (arcpy)
-│   ├── create_dataset_module.py     # Формирование train/valid/test + label .txt
-│   └── augmentation_module.py       # Аугментация изображений и аннотаций
+├── 📂 opp_yolo_tool/                 # Python modules
+│   ├── models.py                  # Model definitions
+│   ├── utils.py                   # Helper functions
+│   ├── predict_module.py          # YOLO detection
+│   ├── tile_generator.py          # Tile generation (arcpy)
+│   ├── create_dataset_module.py   # train/valid/test + label .txt generation
+│   └── augmentation_module.py     # Image and annotation augmentation
 │
-└── 📂 Images/                        # Иконки Add-in
+└── 📂 Images/                        # Add-in icons
 ```
 
-### 📦 Структура результатов Create Dataset
+### 📦 Create Dataset Output Structure
 
-```
+```text
 OrthoMapping/<OrthoName>/DataSet/<experiment_name>/
 ├── train/
 │   ├── images/
@@ -98,7 +105,7 @@ OrthoMapping/<OrthoName>/DataSet/<experiment_name>/
 ├── test/
 │   ├── images/
 │   └── labels/
-├── debug/                              # при включенном DebugMode
+├── debug/                              # When DebugMode is enabled
 │   ├── train/
 │   ├── valid/
 │   └── test/
@@ -114,73 +121,75 @@ OrthoMapping/<OrthoName>/DataSet/<experiment_name>/
 └── augmentation_stderr.log
 ```
 
-### 🧩 Модуль `augmentation_module.py`
+### 🧩 `augmentation_module.py`
 
-Модуль выполняет аугментацию уже сформированного YOLO-датасета (`train/valid/test`):
+This module augments an existing YOLO dataset (`train/valid/test`):
 
-- детерминированные преобразования (`rot90`, `rot180`, `rot270`, `fliph`, `flipv`, `fliph_rot90`, `fliph_rot270`);
-- случайные геометрические, цветовые, шумовые и advanced-аугментации (`mosaic`, `mixup`, `copy-paste`, `cutout`, `erasing`);
-- синхронное обновление аннотаций `.txt` для каждого созданного изображения;
-- debug-визуализация аннотаций на аугментированных вариантах (если включен `--debug`).
+- deterministic transforms (`rot90`, `rot180`, `rot270`, `fliph`, `flipv`, `fliph_rot90`, `fliph_rot270`);
+- random geometry, color, noise, and advanced augmentations (`mosaic`, `mixup`, `copy-paste`, `cutout`, `erasing`);
+- synchronized `.txt` annotation updates for every generated image;
+- debug visualization of annotations on augmented variants when `--debug` is enabled.
 
-### 🧩 Модуль `create_dataset_module.py`
+### 🧩 `create_dataset_module.py`
 
-Модуль формирует базовый датасет из тайлов и выбранных слоёв аннотаций:
+This module builds a base dataset from tiles and selected annotation layers:
 
-- читает `Tile_Grid_Pixels.shp` и геометрию тайлов;
-- формирует split `train/valid/test` по заданным процентам и seed;
-- поддерживает форматы разметки:
+- reads `Tile_Grid_Pixels.shp` and tile geometry;
+- creates the `train/valid/test` split from the configured percentages and seed;
+- supports annotation formats:
   - `Detection` (YOLO bbox),
   - `Segmentation` (YOLO polygon),
-  - `OBB` (YOLO oriented box, 4 точки);
-- фильтрует почти пустые (black/white) тайлы без аннотаций;
-- создаёт debug-рендеры аннотаций при включённом debug-режиме;
-- пишет `dataset_build_summary.json` с итоговой статистикой.
+  - `OBB` (YOLO oriented box, 4 points);
+- filters near-empty black/white tiles without annotations;
+- creates debug annotation renders when debug mode is enabled;
+- writes `dataset_build_summary.json` with final statistics.
 
-### 🧠 Как работает новый pipeline Create Dataset
+### 🧠 Create Dataset Pipeline
 
-1. Генерация/переиспользование тайлов из панели ArcGIS Pro.
-2. Сборка базового датасета через `create_dataset_module.py`.
-3. Аугментация через `augmentation_module.py`.
-4. Пост-обработка финального train (после аугментации):
-   - ограничение доли/количества background,
-   - downsample классов по методу `Median / Average / Minimum`.
-5. Формирование `dataset_report.txt` со статистикой:
+1. Generate or reuse tiles from the ArcGIS Pro panel.
+2. Build the base dataset with `create_dataset_module.py`.
+3. Run augmentation with `augmentation_module.py`.
+4. Post-process the final train set after augmentation:
+   - limit background share/count,
+   - downsample classes by `Median / Average / Minimum`.
+5. Generate `dataset_report.txt` with statistics:
    - `Base / before augmentation`,
    - `Final / after augmentation`.
 
 ---
 
-## 🚀 Установка и запуск
+## 🚀 Installation and Launch
 
-### Требования
-- ✅ **ArcGIS Pro 3.7** (установлен и активирован)
-- ✅ **Visual Studio 2026** (18.4.1+) с ArcGIS Pro SDK
-- ✅ **Python 3.9+** (встроенный в ArcGIS Pro)
-- ✅ **Ultralytics YOLO** и **PyTorch** (для детекции)
+### Requirements
 
-### 1️⃣ Установка зависимостей Python
+- ✅ **ArcGIS Pro 3.7** installed and activated
+- ✅ **Visual Studio 2026** (18.4.1+) with ArcGIS Pro SDK
+- ✅ **Python 3.9+** bundled with ArcGIS Pro
+- ✅ **Ultralytics YOLO** and **PyTorch** for detection
 
-Откройте **Python Command Prompt** из ArcGIS Pro:
+### 1️⃣ Install Python Dependencies
+
+Open **Python Command Prompt** from ArcGIS Pro:
 
 ```bash
-# Клонируйте среду arcgispro-py3 по умолчанию, чтобы создать среду с именем arcgispro-py3-clone.
+# Clone the default arcgispro-py3 environment to create an environment named arcgispro-py3-clone.
 conda create --clone arcgispro-py3 --name arcgispro-py3-clone --pinned
 
-Флаг --pinned, представленный компанией Esri, переносит закрепленный файл из исходной среды в клонированную. Используйте этот флаг, чтобы обеспечить целостность клонированной среды при обновлении или установке пакетов.
+# The --pinned flag from Esri copies the pinned file from the source environment
+# into the cloned environment. Use it to preserve environment integrity when
+# updating or installing packages.
 
-# Активировать окружение ArcGIS Pro
+# Activate the ArcGIS Pro environment
 activate arcgispro-py3-clone
 
-# Установить Ultralytics YOLO
+# Install Ultralytics YOLO
 conda install ultralytics
 
-# Установить SAHI для sliced inference
+# Install SAHI for sliced inference
 conda install conda-forge::sahi
-
 ```
 
-### Создание датасета (ArcGIS Pro Python, требуется `arcpy`)
+### Create a Dataset (ArcGIS Pro Python, requires `arcpy`)
 
 ```bash
 python opp_yolo_tool/create_dataset_module.py \
@@ -194,7 +203,7 @@ python opp_yolo_tool/create_dataset_module.py \
   --debug --debug-dir "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001\debug"
 ```
 
-### Аугментация датасета
+### Augment a Dataset
 
 ```bash
 python opp_yolo_tool/augmentation_module.py \
@@ -209,127 +218,138 @@ python opp_yolo_tool/augmentation_module.py \
   --debug --debug-dir "C:\MyProject\OrthoMapping\Ortho_2024_01\DataSet\exp_001\debug"
 ```
 
-📚 **Документация по Python в ArcGIS Pro:**
-- [Установка Python для ArcGIS Pro](https://pro.arcgis.com/ru/pro-app/latest/arcpy/get-started/installing-python-for-arcgis-pro.htm)
-- [Использование Conda с ArcGIS Pro](https://pro.arcgis.com/ru/pro-app/latest/arcpy/get-started/using-conda-with-arcgis-pro.htm)
+📚 **ArcGIS Pro Python documentation:**
+- [Install Python for ArcGIS Pro](https://pro.arcgis.com/ru/pro-app/latest/arcpy/get-started/installing-python-for-arcgis-pro.htm)
+- [Use Conda with ArcGIS Pro](https://pro.arcgis.com/ru/pro-app/latest/arcpy/get-started/using-conda-with-arcgis-pro.htm)
 - [Package Manager](https://doc.esri.com/en/arcgis-pro/latest/arcpy/get-started/what-is-conda.html)
-- [Поиск пакетов conda и Python](https://anaconda.org/)
+- [Search Conda and Python packages](https://anaconda.org/)
 
-### 2️⃣ Сборка Add-in
+### 2️⃣ Build the Add-in
 
-В Visual Studio:
+In Visual Studio:
 
-1. Откройте `ArcGisProAppYolo.sln`
-2. **Build → Clean Solution**
-3. **Build → Rebuild Solution**
-4. Проверьте: **0 errors**
+1. Open `ArcGisProAppYolo.sln`
+2. Select **Build -> Clean Solution**
+3. Select **Build -> Rebuild Solution**
+4. Verify there are **0 errors**
 
-### 3️⃣ Очистка кэша ArcGIS Pro (ОБЯЗАТЕЛЬНО!)
+### 3️⃣ Clear the ArcGIS Pro Cache (Required)
 
-Перед запуском после каждой пересборки:
+Before launching after each rebuild:
 
 ```powershell
 Remove-Item "$env:LOCALAPPDATA\ESRI\ArcGISPro\AssemblyCache\{a79ff6b9-f9a2-4dc3-8cdb-820811bb9ad8}" -Recurse -Force
 ```
 
-### 4️⃣ Разместите файлы python из `opp_yolo_tool` в директории `C:\Users\<User_Name>\AppData\Local\ESRI\ArcGISPro\opp_yolo_tool`
+### 4️⃣ Copy Python Files
 
-### 4️⃣ Запуск отладки
+Copy the Python files from `opp_yolo_tool` to:
 
-1. Нажмите **F5** в Visual Studio
-2. ArcGIS Pro запустится автоматически
-3. Откройте или создайте проект
-4. На вкладке **Add-In** найдите кнопку **YOLO Tool**
-5. Откроется панель справа
+```text
+C:\Users\<User_Name>\AppData\Local\ESRI\ArcGISPro\opp_yolo_tool
+```
+
+### 5️⃣ Start Debugging
+
+1. Press **F5** in Visual Studio.
+2. ArcGIS Pro starts automatically.
+3. Open or create a project.
+4. On the **Add-In** tab, find the **YOLO Tool** button.
+5. The panel opens on the right.
 
 ---
 
-## 🧩 Добавление в ArcGIS Pro
-Скачайте архив на странице релиза [ArcGisProAppYolo.1.2.0-windows.rar](https://github.com/gdenis82/ArcGisPro_Yolo_Tools/releases)
+## 🧩 Add to ArcGIS Pro
+
+Download the release archive [ArcGisProAppYolo.1.2.0-windows.rar](https://github.com/gdenis82/ArcGisPro_Yolo_Tools/releases).
 
 ```text
-Распакуйте архив ArcGisProAppYolo.1.2.0-windows.rar
-Дважды кликните по файлу ArcGisProAppYolo.esriAddinX (находится в папке ArcGisProAppYolo.1.2.0-windows)
-Нажмите Install Add-In в окне установщика
-Перезапустите ArcGIS Pro
-Инструмент появится на ленте в соответствующей вкладке
-Разместите папку opp_yolo_tool в расположении ArcGISPro: C:\Users\<USERNAME>\AppData\Local\ESRI\ArcGISPro\opp_yolo_tool
+Extract ArcGisProAppYolo.1.2.0-windows.rar.
+Double-click ArcGisProAppYolo.esriAddinX inside the ArcGisProAppYolo.1.2.0-windows folder.
+Click Install Add-In in the installer window.
+Restart ArcGIS Pro.
+The tool appears on the ribbon in the corresponding tab.
+Place the opp_yolo_tool folder under ArcGISPro: C:\Users\<USERNAME>\AppData\Local\ESRI\ArcGISPro\opp_yolo_tool
 ```
 
-### Способ 1: Самый простой (двойной клик)
-1. Закройте ArcGIS Pro (если он открыт).
-2. Перейдите в папку плагина.
-3. Найдите файл ArcGisProAppYolo.esriAddinX и дважды кликните по нему.
-4. Откроется окно установщика ArcGIS Pro Add-In. Нажмите Install Add-In.
+### Method 1: Easiest Option (Double-Click)
 
-### Способ 2: Через ArcGIS Pro
-1. Откройте ArcGIS Pro.
-2. Перейдите на вкладку Settings (Настройки) -> Add-In Manager (Диспетчер надстроек).
-3. В меню выберите Options (Параметры).
-4. Добавьте путь размещения папки с файлом .esriAddinX.
-5. Установите "Load all Add-Ins without restrictions (Least Secure)"
+1. Close ArcGIS Pro if it is open.
+2. Go to the plugin folder.
+3. Find `ArcGisProAppYolo.esriAddinX` and double-click it.
+4. The ArcGIS Pro Add-In installer opens. Click **Install Add-In**.
 
+### Method 2: Through ArcGIS Pro
 
-## 📋 Использование
+1. Open ArcGIS Pro.
+2. Go to **Settings -> Add-In Manager**.
+3. Select **Options**.
+4. Add the folder path that contains the `.esriAddinX` file.
+5. Enable **Load all Add-Ins without restrictions (Least Secure)**.
 
-### Шаг 1: Подготовка данных
+---
 
-Создайте структуру в вашем проекте ArcGIS Pro:
+## 📋 Usage
 
-```
+### Step 1: Prepare Data
+
+Create the following structure in your ArcGIS Pro project:
+
+```text
 MyProject/
 ├── MyProject.aprx
 └── OrthoMapping/
     ├── Ortho_2024_01/
-    │   └── ortho.tif          # Ортофотоплан
+    │   └── ortho.tif          # Orthophoto
     └── Ortho_2024_02/
-        └── ortho.tif          # Другой ортофотоплан
+        └── ortho.tif          # Another orthophoto
 ```
 
-### Шаг 2: Настройка параметров
+### Step 2: Configure Parameters
 
-В панели **YOLO Tool**:
+In the **YOLO Tool** panel:
 
-1. **Ortho Selection** — выберите ортофотоплан из списка
-2. **Model Configuration** — укажите путь к YOLO модели (`.pt` файл)
-   - Поддерживается история ранее выбранных моделей (ComboBox)
+1. **Ortho Selection**: select an orthophoto from the list.
+2. **Model Configuration**: specify the path to the YOLO model (`.pt` file).
+   - Previously selected models are available in the ComboBox history.
 3. **Tile Settings**:
-   - Tile Size: `640` (рекомендуемый размер для YOLO)
-   - Overlap %: `30` (перекрытие между тайлами)
+   - Tile Size: `640` (recommended size for YOLO)
+   - Overlap %: `30` (overlap between tiles)
 4. **Detection Settings**:
-   - Confidence: `0.5` (порог уверенности)
-   - Output Points: ✅ (центроиды объектов)
-   - Output Masks: ✅ (полигоны масок)
-   - Output BBoxes: ✅ (прямоугольники)
-    - Output OBB: ✅ (ориентированные прямоугольники)
+   - Confidence: `0.5` (confidence threshold)
+   - Output Points: enabled (object centroids)
+   - Output Masks: enabled (mask polygons)
+   - Output BBoxes: enabled (rectangles)
+   - Output OBB: enabled (oriented rectangles)
    - Mask Mode:
-     - `Largest` — 1 маска = 1 объект (крупнейший контур)
-     - `Union` — объединение всех контуров в одну геометрию
+     - `Largest`: 1 mask = 1 object (largest contour)
+     - `Union`: union all contours into one geometry
 
-### Шаг 3: Запуск детекции
+### Step 3: Run Detection
 
-1. Нажмите **Run Detection**
-   - Во время выполнения кнопка переключается в **Cancel**
-2. Процесс:
-   - ✂️ Генерация тайлов (`OrthoMapping/<OrthoName>/Tiles/Images/`)
-   - 🤖 Запуск YOLO детекции
-   - 📊 Создание shapefiles
-    - 📁 Запись результатов в `Detection_Results/<experiment_name>/`
+1. Click **Run Detection**.
+   - While processing is running, the button changes to **Cancel**.
+2. The process:
+   - ✂️ Generate tiles (`OrthoMapping/<OrthoName>/Tiles/Images/`)
+   - 🤖 Run YOLO detection
+   - 📊 Create shapefiles
+   - 📁 Write results to `Detection_Results/<experiment_name>/`
 
-### Шаг 4: Просмотр результатов
+### Step 4: View Results
 
-Результаты сохраняются в:
-```
+Results are saved to:
+
+```text
 OrthoMapping/<OrthoName>/
 ├── Tiles/
 │   └── <TileSize>px/
-│       ├── Images/            # Тайлы изображений
-│       └── shapes/            # Сетка тайлов (shapefile)
+│       ├── Images/            # Image tiles
+│       └── shapes/            # Tile grid (shapefile)
 └── Detection_Results/
     └── <experiment_name>/
         ├── all_detections_sahi.json
-        ├── Detected_Points.shp    # Центроиды объектов
-        ├── Detected_Masks.shp     # Полигоны масок
+        ├── Detected_Points.shp    # Object centroids
+        ├── Detected_Masks.shp     # Mask polygons
         ├── Detected_BBoxes.shp    # Bounding boxes
         ├── Detected_OBB.shp       # Oriented bounding boxes
         ├── predict_stdout.log
@@ -338,55 +358,64 @@ OrthoMapping/<OrthoName>/
 
 ---
 
-## 🐞 Отладка и логирование
+## 🐞 Debugging and Logging
 
-### Логи в Visual Studio
+### Logs in Visual Studio
 
-- **View → Output** → выберите **Debug**
-- Все операции логируются с временными метками
+- **View -> Output** -> select **Debug**
+- All operations are logged with timestamps.
 
-### Лог-файл
+### Log File
 
-Лог сохраняется в:
-```
+The log is saved to:
+
+```text
 %TEMP%\ArcGisProAppYolo_YYYYMMDD.log
 ```
 
-При открытии панели путь выводится в Output Window:
-```
+When the panel opens, the path is printed to the Output Window:
+
+```text
 Log file location: C:\Users\...\Temp\ArcGisProAppYolo_20260622.log
 ```
 
-### 🛠️ Типичные проблемы
+### 🛠️ Common Issues
 
-### 🔴 Предупреждение не совместимости пакетов torchvision и torch
+#### 🔴 Torchvision and Torch Package Compatibility Warning
+
+```text
 WARNING torchvision==0.25 is incompatible with torch==2.9.
 Run 'pip install torchvision==0.24' to fix torchvision or 'pip install -U torch torchvision' to update both.
-For a full compatibility table see https://github.com/pytorch/vision#installation 
-
-**Одно из возможных решений:** 
+For a full compatibility table see https://github.com/pytorch/vision#installation
 ```
+
+One possible solution:
+
+```bash
 conda uninstall pytorch torchvision -y
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 pip install ultralytics-thop opencv-python
 ```
 
-#### 🔴 Панель пустая
-**Решение:** Очистите кэш и пересоберите проект
+#### 🔴 Empty Panel
 
-#### 🔴 Ортофотопланы не найдены
-**Решение:** Проверьте структуру папки `OrthoMapping/` в корне проекта
+**Solution:** Clear the cache and rebuild the project.
 
-#### 🔴 Python скрипт не запускается
-**Решение:** Проверьте путь к Python и установленные зависимости
+#### 🔴 Orthophotos Not Found
+
+**Solution:** Check the `OrthoMapping/` folder structure in the project root.
+
+#### 🔴 Python Script Does Not Start
+
+**Solution:** Check the Python path and installed dependencies.
 
 ---
 
-## 🧪 Ручной запуск Python модуля
+## 🧪 Manual Python Module Run
 
-Для тестирования без ArcGIS Pro:
+For testing without ArcGIS Pro:
 
-### Нарезка тайлов
+### Tile Generation
 
 ```bash
 python opp_yolo_tool/tile_generator.py \
@@ -396,7 +425,7 @@ python opp_yolo_tool/tile_generator.py \
   --overlap 30
 ```
 
-### Предсказание
+### Prediction
 
 ```bash
 python opp_yolo_tool/predict_module.py \
@@ -409,7 +438,7 @@ python opp_yolo_tool/predict_module.py \
 
 ---
 
-## 📚 Документация
+## 📚 Documentation
 
 - 📗 [ArcGIS Pro SDK Wiki](https://github.com/Esri/arcgis-pro-sdk/wiki)
 - 📕 [ProGuide: Dockpanes](https://github.com/Esri/arcgis-pro-sdk/wiki/ProGuide-Dockpanes)
@@ -419,7 +448,7 @@ python opp_yolo_tool/predict_module.py \
 
 ## 🤝 Contributing
 
-Pull requests приветствуются! Для крупных изменений сначала откройте issue для обсуждения.
+Pull requests are welcome. For major changes, open an issue first to discuss the proposed update.
 
 ---
 
@@ -429,16 +458,15 @@ MIT License
 
 ---
 
-## 👨‍💻 Автор
+## 👨‍💻 Author
 
 **gdenis82** - [GitHub](https://github.com/gdenis82)
 
 ---
 
-## ⭐ Благодарности
+## ⭐ Acknowledgements
 
 - [Esri ArcGIS Pro SDK](https://github.com/Esri/arcgis-pro-sdk)
 - [Ultralytics YOLO](https://github.com/ultralytics/ultralytics)
 
 ---
-
